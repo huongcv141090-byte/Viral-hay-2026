@@ -37,7 +37,6 @@
                 <span>🧪 Chế độ thử nghiệm</span>
             </label>
             <button id="pro-chip" class="pro-chip hidden" title="Tài khoản Pro đang đấu nối">💎 Pro</button>
-            <button id="auth-chip" class="auth-chip" title="Đăng nhập Puter để dùng AI thật">⭕ Khách</button>
         </div>
     </header>
 
@@ -532,23 +531,28 @@
             </div>
         </div>
 
+        <div class="card">
+            <h3>Bộ máy AI & đăng nhập</h3>
+            <p class="hint">App dùng <b>key của bạn</b> làm bộ máy chính (TokenForge → Gemini → OpenAI, cấu hình ở thẻ 💎 phía trên) và <b>VoiceStudio</b> trên máy bạn cho giọng đọc — <b>không có/không cần đăng nhập Google hay ChatGPT</b> (họ không cung cấp OAuth cho app thứ ba, xem giải thích trong thẻ 💎).</p>
+            <p class="hint">Puter chỉ còn là <b>engine dự phòng</b> cho video và các tác vụ chưa có key: khi cần, Puter sẽ tự mở cửa sổ đăng nhập của riêng nó ngay tại lúc gọi (không có nút đăng nhập trong app).</p>
+        </div>
+
         <div class="grid-2">
             <div class="card">
-                <h3>Tài khoản Puter <small>(tuỳ chọn)</small></h3>
-                <div id="settings-auth" class="out muted">Đang kiểm tra…</div>
+                <h3>☁️ Lưu trữ đám mây (Vercel Blob)</h3>
+                <p class="step-desc">Dữ liệu dự án + doanh thu + thư viện lưu lên <b>viral-hay-2026-blob</b> của bạn trên Vercel. Dùng được trên bản đã deploy (vercel.app); mở bằng bất kỳ trình duyệt/máy nào.</p>
                 <div class="step-actions">
-                    <button id="btn-signin" class="btn">Kết nối Puter</button>
-                    <button id="btn-signout" class="btn ghost">Đăng xuất</button>
+                    <button id="btn-cloud-save" class="btn primary">☁️ Lưu lên Vercel Blob</button>
+                    <button id="btn-cloud-load" class="btn ghost">☁️ Tải từ Vercel Blob</button>
+                    <span class="status" id="cloud-status"></span>
                 </div>
-                <p class="hint">App <b>không bắt buộc</b> Puter: khi đã nhập key (TokenForge/Gemini/OpenAI) hoặc bật VoiceStudio, tác vụ tương ứng chạy trực tiếp — <code>auto</code> luôn ưu tiên key của bạn trước. Puter chỉ cần khi: tạo video (Veo/Seedance/Kling…), hoặc chưa có key nào cho tác vụ đó. AI qua Puter chạy theo mô hình <b>User Pays</b> — tính vào credits của tài khoản Puter của bạn.</p>
+                <p class="hint">Dữ liệu nhạy cảm (key AI) KHÔNG được lưu cloud — key chỉ nằm trong trình duyệt của người nhập.</p>
             </div>
             <div class="card">
-                <h3>Dữ liệu dự án</h3>
+                <h3>Dữ liệu dự án (trên máy này)</h3>
                 <div class="step-actions">
                     <button id="btn-export" class="btn">⬇️ Xuất dự án (JSON)</button>
                     <label class="btn ghost file-btn">⬆️ Nhập dự án<input type="file" id="import-file" accept="application/json" hidden></label>
-                    <button id="btn-save-kv" class="btn ghost">☁️ Lưu lên Puter KV</button>
-                    <button id="btn-load-kv" class="btn ghost">☁️ Tải từ Puter KV</button>
                     <button id="btn-clear" class="btn danger">🗑️ Xoá dự án hiện tại</button>
                 </div>
                 <p class="hint" id="storage-hint"></p>

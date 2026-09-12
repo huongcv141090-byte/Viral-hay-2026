@@ -1024,25 +1024,24 @@
     }
 
     /* ===================================================================== */
-    /* SETTINGS + AUTH                                                       */
+    /* SETTINGS — không còn UI đăng nhập: Puter chỉ là engine dự phòng,
+       tự mở cửa sổ xác thực của riêng nó khi một lệnh gọi cần.             */
     /* ===================================================================== */
     async function refreshAuth() {
-        const signed = typeof puter !== 'undefined' ? await VFAI.isSignedIn() : false;
-        APP.user = signed ? await VFAI.getUser() : null;
-        const chip = $('auth-chip');
-        if (APP.user) {
-            chip.textContent = `✅ ${APP.user.username || APP.user.email || 'Puter user'}`;
-            chip.classList.add('signed');
-        } else {
-            chip.textContent = '⭕ Khách — bấm để kết nối';
-            chip.classList.remove('signed');
+        /* đăng nhập im lặng (nếu user đã có session Puter trong trình duyệt)
+           để các lệnh gọi Puter chạy không cần thao tác — không hiển thị UI */
+        try {
+            const signed = typeof puter !== 'undefined' ? await VFAI.isSignedIn() : false;
+            APP.user = signed ? await VFAI.getUser() : null;
+        } catch (_) {
+            APP.user = null;
         }
         renderSettingsAuth();
     }
 
     function renderSettingsAuth() {
         const n = $('settings-auth');
-        if (!n) return;
+        if (!n) return; // card đã bị xoá khỏi UI
         n.classList.remove('muted');
         n.innerHTML = APP.user
             ? `Đăng nhập với: <b>${esc(APP.user.username || '')}</b> ${esc(APP.user.email || '')}`
@@ -1050,6 +1049,7 @@
     }
 
     async function signInClick() {
+        /* không còn nút đăng nhập — giữ hàm cho các luồng cũ nếu cần */
         try {
             await VFAI.signIn();
             await refreshAuth();
@@ -1447,17 +1447,7 @@
             toast(APP.settings.testMode ? '🧪 Chế độ thử nghiệm BẬT — media mẫu, không tốn credits.' : '💸 Chế độ thử nghiệm TẮT — mọi lần sinh đều tính credits của bạn!', APP.settings.testMode ? '' : 'err');
         });
 
-        /* auth */
-        $('auth-chip').addEventListener('click', () => {
-            if (APP.user) document.querySelector('[data-view="settings"]').click();
-            else signInClick();
-        });
-        $('btn-signin').addEventListener('click', signInClick);
-        $('btn-signout').addEventListener('click', async () => {
-            try { await VFAI.signOut(); } catch (_) { /* ignore */ }
-            await refreshAuth();
-            toast('Đã đăng xuất.');
-        });
+        /* auth — đã bỏ UI đăng nhập; Puter tự hỏi khi engine dự phòng cần */
 
         /* models */
         $('btn-load-all-models').addEventListener('click', loadAllModels);
@@ -1484,17 +1474,74 @@
                 toast(`File không hợp lệ: ${err.message}`, 'err');
             }
         });
-        $('btn-save-kv').addEventListener('click', async () => {
-            const ok = await VFAI.kvSet('vf2026:project', APP.project);
-            toast(ok ? 'Đã lưu dự án lên Puter KV ☁️' : 'Lưu KV thất bại — cần đăng nhập Puter.', ok ? 'ok' : 'err');
+
+        /* ☁️ Vercel Blob — lưu/tải toàn bộ (project + doanh thu + thư viện) */
+        $('btn-cloud-save').addEventListener('click', async () => {
+            setBusy('btn-cloud-save', true);
+            setStatus('cloud-status', 'Đang lưu lên Vercel Blob…');
+            try {
+                const payload = VFStore.stripForSave({
+                    project: APP.project,
+                    revenue: revenueRows,
+                    library: VFStore.loadLibrary(),
+                    settings: { testMode: APP.settings.testMode },
+                    savedAt: new Date().toISOString(),
+                });
+                const resp = await fetch('/api/store?key=vf2026/backup', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    const msg = json.error || (resp.status === 404 || resp.status === 501 ? 'Chỉ dùng được trên bản đã deploy (vercel.app) — máy local không có /api/store.' : `HTTP ${resp.status}`);
+                    throw new Error(msg);
+                }
+                setStatus('cloud-status', `✅ Đã lưu cloud (${new Date().toLocaleTimeString('vi-VN')})`, 'ok');
+                toast('☁️ Đã lưu lên Vercel Blob — mở ở bất kỳ máy nào cũng tải được.', 'ok');
+            } catch (err) {
+                const offline = err.message === 'Failed to fetch';
+                setStatus('cloud-status', `❌ ${offline ? 'Chỉ dùng được trên bản đã deploy (vercel.app) — máy local không có /api/store.' : err.message}`, 'err');
+            } finally {
+                setBusy('btn-cloud-save', false);
+            }
         });
-        $('btn-load-kv').addEventListener('click', async () => {
-            const data = await VFAI.kvGet('vf2026:project');
-            if (!data) { toast('Không có dự án nào trên Puter KV.', 'err'); return; }
-            APP.project = { ...VFStore.defaultProject(), ...data };
-            save();
-            fillFormFromProject();
-            toast('Đã tải dự án từ Puter KV ☁️', 'ok');
+        $('btn-cloud-load').addEventListener('click', async () => {
+            if (!confirm('Tải dữ liệu từ Vercel Blob về và GHI ĐÈ dự án + doanh thu + thư viện trên máy này?')) return;
+            setBusy('btn-cloud-load', true);
+            setStatus('cloud-status', 'Đang tải từ Vercel Blob…');
+            try {
+                const resp = await fetch('/api/store?key=vf2026/backup');
+                const json = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    const msg = json.error || (resp.status === 404 || resp.status === 501 ? 'Chưa có dữ liệu trên cloud, hoặc đang chạy local (không có /api/store).' : `HTTP ${resp.status}`);
+                    throw new Error(msg);
+                }
+                if (json.project) {
+                    APP.project = { ...VFStore.defaultProject(), ...json.project };
+                    VFStore.saveProject(APP.project);
+                    fillFormFromProject();
+                }
+                if (Array.isArray(json.revenue)) {
+                    revenueRows = json.revenue;
+                    VFStore.saveRevenue(revenueRows);
+                    renderRevenue();
+                }
+                if (json.settings) {
+                    APP.settings = { ...APP.settings, ...json.settings };
+                    VFStore.saveSettings(APP.settings);
+                    $('testmode-toggle').checked = !!APP.settings.testMode;
+                    onVideoModelChange();
+                    refreshProState();
+                    renderTestBanner();
+                }
+                setStatus('cloud-status', `✅ Đã tải dữ liệu lưu lúc ${json.savedAt ? new Date(json.savedAt).toLocaleString('vi-VN') : 'không rõ thời gian'}`, 'ok');
+                toast('☁️ Đã tải từ Vercel Blob — dữ liệu máy này được ghi đè.', 'ok');
+            } catch (err) {
+                setStatus('cloud-status', `❌ ${err.message === 'Failed to fetch' ? 'Chỉ dùng được trên bản đã deploy (vercel.app).' : err.message}`, 'err');
+            } finally {
+                setBusy('btn-cloud-load', false);
+            }
         });
         $('btn-clear').addEventListener('click', () => {
             if (!confirm('Xoá dự án hiện tại trên máy này? (Thư viện vẫn giữ)')) return;

@@ -64,16 +64,16 @@
         loadProject() {
             return { ...defaultProject(), ...safeGet(KEY_PROJECT, {}) };
         },
+        /* Bản "nhẹ" để lưu: bỏ dataURL quá lớn & blob tạm thời */
+        stripForSave(project) {
+            return JSON.parse(JSON.stringify(project, (k, v) => {
+                if (typeof v === 'string' && v.startsWith('data:') && v.length > 200000) return '__STRIPPED_DATA_URL__';
+                if (typeof v === 'string' && v.startsWith('blob:')) return '__SESSION_BLOB__';
+                return v;
+            }));
+        },
         saveProject(project) {
-            /* Bỏ các trường blob/dataURL quá lớn trước khi lưu */
-            const light = JSON.parse(
-                JSON.stringify(project, (k, v) => {
-                    if (typeof v === 'string' && v.startsWith('data:') && v.length > 200000) return '__STRIPPED_DATA_URL__';
-                    if (typeof v === 'string' && v.startsWith('blob:')) return '__SESSION_BLOB__';
-                    return v;
-                })
-            );
-            return safeSet(KEY_PROJECT, light);
+            return safeSet(KEY_PROJECT, Store.stripForSave(project));
         },
         clearProject() {
             localStorage.removeItem(KEY_PROJECT);
