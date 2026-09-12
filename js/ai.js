@@ -108,7 +108,7 @@
         if (code === 'moderation_flagged')
             return { ...e, friendly: 'Nội dung bị bộ lọc của model từ chối. Hãy viết lại prompt theo hướng khác.' };
         if (code === 'insufficient_funds')
-            return { ...e, friendly: 'Không đủ AI credits trong tài khoản Puter. Nạp thêm hoặc chọn model rẻ hơn / bật Chế độ thử nghiệm.' };
+            return { ...e, friendly: 'Không đủ AI credits trong tài khoản Puter. Cách hay nhất: nhập key TokenForge/Gemini (Cài đặt → 💎 Pro) để chat chạy theo key của bạn — miễn phí theo free tier. Hoặc nạp thêm credits / chọn model rẻ hơn.' };
         if (code === 'upstream_timeout')
             return { ...e, friendly: 'Model mất quá lâu để tạo. Thử lại với video ngắn hơn hoặc model nhanh hơn.' };
         if (code === 'access_denied' || code === 'cannot_write_to_root')
@@ -156,14 +156,60 @@
             }
         };
 
-        return directWithFallback('chat', options, () => {
-            let engine = VFPro.engineFor('chat');
-            if (engine === 'auto') engine = VFPro.resolveAuto('chat');
-            if (engine === 'tokenforge') return VFPro.tokenforgeChat(messages, options);
-            return engine === 'gemini'
-                ? VFPro.geminiChat(messages, options)
-                : VFPro.openaiChat(messages, options);
-        }, puterCall);
+        /* CHUỖI ƯU TIÊN CHO CHAT: engine người dùng chọn → TokenForge →
+           Gemini → OpenAI → Puter. Chat KHÔNG bị Chế độ thử nghiệm chặn
+           (chat không có media mẫu miễn phí — dùng key của bạn là miễn phí
+           theo quota của chính bạn). KHÔNG truyền options.model sang engine
+           trực tiếp — đó là model của Puter; engine trực tiếp dùng model
+           đã cấu hình riêng trong thẻ 💎. */
+        const callEngine = (engine) => {
+            const directOpts = {
+                temperature: options.temperature,
+                max_tokens: options.max_tokens,
+                onFallback: options.onFallback,
+            };
+            if (engine === 'tokenforge') return VFPro.tokenforgeChat(messages, directOpts);
+            if (engine === 'gemini') return VFPro.geminiChat(messages, directOpts);
+            return VFPro.openaiChat(messages, directOpts);
+        };
+
+        const candidates = [];
+        const sel = VFPro.engineFor('chat');
+        if (sel !== 'auto') candidates.push(sel);
+        const auto = VFPro.resolveAuto('chat');
+        if (auto !== 'puter') candidates.push(auto);
+        ['tokenforge', 'gemini', 'openai'].forEach((e) => {
+            if (!candidates.includes(e) && VFPro.isDirect('chat', e) === true) candidates.push(e);
+        });
+        if (!candidates.length) return puterCall();
+
+        const names = { gemini: 'Gemini', openai: 'OpenAI', tokenforge: 'TokenForge' };
+        let lastErr = null;
+        for (const engine of candidates) {
+            try {
+                return await callEngine(engine);
+            } catch (err) {
+                lastErr = err;
+                const recoverable = ['pro_auth', 'pro_api', 'pro_quota'].includes(err.code)
+                    || /quota|maintenance|resource_exhausted/i.test(err.message || '');
+                if (!recoverable) {
+                    err.friendly = err.friendly || `${names[engine] || engine}: ${err.message}`;
+                    throw err;
+                }
+                if (typeof options.onFallback === 'function') {
+                    options.onFallback(`💎 ${names[engine]} lỗi: ${err.friendly || err.message} — thử bộ máy kế tiếp…`);
+                }
+            }
+        }
+        const cfg = typeof VFPro !== 'undefined' ? VFPro.getConfig() : {};
+        if (cfg.autoFallback === false && lastErr) {
+            lastErr.friendly = lastErr.friendly || lastErr.message;
+            throw lastErr;
+        }
+        if (lastErr && typeof options.onFallback === 'function') {
+            options.onFallback('💎 Tất cả key trực tiếp đều lỗi — chuyển sang Puter.');
+        }
+        return puterCall();
     }
 
     /* Ép model trả JSON sạch: cắt ```json fence, lấy {...} đầu→cuối */

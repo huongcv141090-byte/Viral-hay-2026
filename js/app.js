@@ -1081,16 +1081,17 @@
             if (status.openai) parts.push('OpenAI');
             chip.textContent = `💎 Pro: ${parts.join(' + ')}`;
         }
-        /* tag bộ máy ở từng bước — testMode bật thì luôn Puter (media mẫu);
-           'auto' giờ TỰ ưu tiên key của user (TokenForge → Gemini → OpenAI) */
+        /* tag bộ máy — testMode chỉ ép Puter với ảnh/video/voice (có media
+           mẫu); CHAT luôn ưu tiên key của bạn vì chat không có media mẫu */
         ['chat', 'image', 'video', 'voice'].forEach((kind) => {
             const tag = $(`engine-${kind}`);
             if (!tag) return;
+            const effTest = APP.settings.testMode && kind !== 'chat';
             let engine = VFPro.engineFor(kind);
             if (engine === 'auto') engine = VFPro.resolveAuto(kind);
-            const usingDirect = !APP.settings.testMode && engine !== 'puter' && VFPro.isDirect(kind, engine) === true;
+            const usingDirect = !effTest && engine !== 'puter' && VFPro.isDirect(kind, engine) === true;
             tag.textContent = ENGINE_LABELS[kind][usingDirect ? engine : 'auto']
-                + (APP.settings.testMode ? ' · 🧪 mẫu' : '');
+                + (effTest ? ' · 🧪 mẫu' : '');
             tag.classList.toggle('pro', usingDirect);
         });
         /* thiếu key khi chọn engine trực tiếp → nhắc ngay trong thẻ Pro */
