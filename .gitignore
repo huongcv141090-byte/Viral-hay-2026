@@ -1,0 +1,10 @@
+# Key thật — không commit
+js/secrets.js
+
+# Dependencies / build artifacts (nếu có)
+node_modules/
+dist/
+
+# OS
+Thumbs.db
+.DS_Store
