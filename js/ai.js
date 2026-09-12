@@ -185,13 +185,15 @@
 
         const names = { gemini: 'Gemini', openai: 'OpenAI', tokenforge: 'TokenForge' };
         let lastErr = null;
+        const failures = [];
         for (const engine of candidates) {
             try {
                 return await callEngine(engine);
             } catch (err) {
                 lastErr = err;
+                failures.push(`${names[engine] || engine}: ${String(err.friendly || err.message).slice(0, 140)}`);
                 const recoverable = ['pro_auth', 'pro_api', 'pro_quota'].includes(err.code)
-                    || /quota|maintenance|resource_exhausted/i.test(err.message || '');
+                    || /quota|maintenance|balance|resource_exhausted/i.test(err.message || '');
                 if (!recoverable) {
                     err.friendly = err.friendly || `${names[engine] || engine}: ${err.message}`;
                     throw err;
@@ -209,7 +211,16 @@
         if (lastErr && typeof options.onFallback === 'function') {
             options.onFallback('💎 Tất cả key trực tiếp đều lỗi — chuyển sang Puter.');
         }
-        return puterCall();
+        try {
+            return await puterCall();
+        } catch (err) {
+            /* gộp nguyên nhân TẤT CẢ bộ máy đã thử — người dùng hiểu ngay */
+            failures.push(`Puter: ${String(err.friendly || err.message).slice(0, 140)}`);
+            const all = failures.join(' · ');
+            const combined = new Error(`Tất cả bộ máy đều lỗi — ${all}`);
+            combined.friendly = `Không có bộ máy nào chạy được: ${all}. Gợi ý: nạp tiền TokenForge, hoặc thêm key Gemini free (Cài đặt → 💎 Pro) — chat sẽ chạy bằng key đó.`;
+            throw combined;
+        }
     }
 
     /* Ép model trả JSON sạch: cắt ```json fence, lấy {...} đầu→cuối */

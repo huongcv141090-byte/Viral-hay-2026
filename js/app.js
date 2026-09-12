@@ -1493,10 +1493,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
-                const json = await resp.json().catch(() => ({}));
+                const raw = await resp.text().catch(() => '');
+                let json = {};
+                try { json = JSON.parse(raw); } catch (_) { /* Vercel trả trang lỗi HTML/plain */ }
                 if (!resp.ok) {
-                    const msg = json.error || (resp.status === 404 || resp.status === 501 ? 'Chỉ dùng được trên bản đã deploy (vercel.app) — máy local không có /api/store.' : `HTTP ${resp.status}`);
-                    throw new Error(msg);
+                    const hint = resp.status === 404 || resp.status === 501 ? 'Chỉ dùng được trên bản đã deploy (vercel.app) — máy local không có /api/store.' : '';
+                    throw new Error(json.error || raw.slice(0, 180) || hint || `HTTP ${resp.status}`);
                 }
                 setStatus('cloud-status', `✅ Đã lưu cloud (${new Date().toLocaleTimeString('vi-VN')})`, 'ok');
                 toast('☁️ Đã lưu lên Vercel Blob — mở ở bất kỳ máy nào cũng tải được.', 'ok');
@@ -1513,10 +1515,12 @@
             setStatus('cloud-status', 'Đang tải từ Vercel Blob…');
             try {
                 const resp = await fetch('/api/store?key=vf2026/backup');
-                const json = await resp.json().catch(() => ({}));
+                const raw = await resp.text().catch(() => '');
+                let json = {};
+                try { json = JSON.parse(raw); } catch (_) { /* Vercel trả trang lỗi HTML/plain */ }
                 if (!resp.ok) {
-                    const msg = json.error || (resp.status === 404 || resp.status === 501 ? 'Chưa có dữ liệu trên cloud, hoặc đang chạy local (không có /api/store).' : `HTTP ${resp.status}`);
-                    throw new Error(msg);
+                    const hint = resp.status === 404 || resp.status === 501 ? 'Chưa có dữ liệu trên cloud, hoặc đang chạy local (không có /api/store).' : '';
+                    throw new Error(json.error || raw.slice(0, 180) || hint || `HTTP ${resp.status}`);
                 }
                 if (json.project) {
                     APP.project = { ...VFStore.defaultProject(), ...json.project };

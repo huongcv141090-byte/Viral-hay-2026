@@ -2,7 +2,11 @@
     "name": "viralforge-2026",
     "version": "1.0.0",
     "private": true,
+    "type": "module",
     "description": "ViralForge 2026 — Video Production OS (Puter AI Edition). Frontend thuần static + /api/store (Vercel Blob).",
+    "engines": {
+        "node": ">=18"
+    },
     "dependencies": {
         "@vercel/blob": "^1.1.0"
     }
