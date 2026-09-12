@@ -37,7 +37,7 @@ Mở [http://localhost:8080](http://localhost:8080) → bấm **"⭕ Khách"** (
 | 07 · Viral | Caption + hashtag + giờ đăng vàng cho từng nền tảng | `puter.ai.chat()` |
 | 08 · Thu nhập | Tracker views/likes/follow/USD theo nền tảng (localStorage) | — |
 
-Lưu trữ: dự án tự lưu `localStorage` + **Puter KV** (☁️), ảnh/video có thể lưu thẳng **Puter Drive** (`puter.fs.write`, `puter_output_path`). Xuất/nhập JSON để sao lưu.
+Lưu trữ: dự án tự lưu `localStorage` trên từng máy + **☁️ Vercel Blob** (`Cài đặt → ☁️ Lưu/Tải lên Vercel Blob` — gói 1 payload gồm dự án + doanh thu + thư viện, lưu vào store `viral-hay-2026-blob` qua `/api/store`), ảnh/video có thể lưu thẳng **Puter Drive** (tuỳ chọn). Xuất/nhập JSON để sao lưu thủ công.
 
 ## 💎 Tài khoản Pro (BYOK) — mang key của bạn
 
