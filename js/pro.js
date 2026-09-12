@@ -84,6 +84,8 @@
         if (patch.autoFallback !== undefined) c.autoFallback = !!patch.autoFallback;
         if (patch.geminiKey !== undefined) c.geminiKey = patch.geminiKey.trim();
         if (patch.openaiKey !== undefined) c.openaiKey = patch.openaiKey.trim();
+        if (patch.tfKey !== undefined) c.tfKey = patch.tfKey.trim();
+        if (patch.tfBaseUrl !== undefined) c.tfBaseUrl = patch.tfBaseUrl.trim();
         saveConfig();
         return c;
     }
@@ -126,7 +128,7 @@
     }
     function proStatus() {
         const c = loadConfig();
-        return { gemini: !!c.geminiKey, openai: !!c.openaiKey };
+        return { gemini: !!c.geminiKey, openai: !!c.openaiKey, tokenforge: !!c.tfKey };
     }
 
     /* ------------------------------------------------------------------ */

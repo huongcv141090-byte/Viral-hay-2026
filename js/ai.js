@@ -493,7 +493,7 @@
         fsWriteBlob,
         fetchBlob,
         friendlyError,
-        proStatus: () => (typeof VFPro !== 'undefined' ? VFPro.proStatus() : { gemini: false, openai: false }),
+        proStatus: () => (typeof VFPro !== 'undefined' ? VFPro.proStatus() : { gemini: false, openai: false, tokenforge: false }),
         routeDirect,
     };
 })(window);

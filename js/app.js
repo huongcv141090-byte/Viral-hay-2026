@@ -1072,10 +1072,11 @@
         if (typeof VFPro === 'undefined') return;
         const status = VFPro.proStatus();
         const chip = $('pro-chip');
-        const hasAny = status.gemini || status.openai;
+        const hasAny = status.gemini || status.openai || status.tokenforge;
         chip.classList.toggle('hidden', !hasAny);
         if (hasAny) {
             const parts = [];
+            if (status.tokenforge) parts.push('TokenForge');
             if (status.gemini) parts.push('Gemini');
             if (status.openai) parts.push('OpenAI');
             chip.textContent = `💎 Pro: ${parts.join(' + ')}`;
@@ -1201,8 +1202,9 @@
             }
         });
         $('btn-test-tf').addEventListener('click', async () => {
-            readModels();
             VFPro.updateConfig({ tfKey: $('pro-tf-key').value, tfBaseUrl: $('pro-tf-url').value });
+            readModels();
+            refreshProState();
             setBusy('btn-test-tf', true);
             setStatus('pro-test-status', 'Đang kiểm tra TokenForge…');
             const r = await VFPro.tokenforgeTest();
