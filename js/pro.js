@@ -30,9 +30,9 @@
     const DEFAULT_CONFIG = {
         geminiKey: '',
         openaiKey: '',
-        /* TokenForge gateway (ai.studio) — chat tương thích OpenAI */
+        /* TokenForge gateway — Anthropic Messages-compatible */
         tfKey: '',
-        tfBaseUrl: 'https://tokenforge.ai.studio/v1',
+        tfBaseUrl: 'https://api.xpiki.com',
         /* engine cho từng loại tác vụ: 'auto' (Puter) | 'gemini' | 'openai' | 'tokenforge' (chat) | 'voicestudio' (voice) */
         engines: { chat: 'auto', image: 'auto', video: 'auto', voice: 'auto' },
         /* Khi Pro lỗi (hết quota free tier, key hết hạn, model limit 0…)
@@ -42,7 +42,7 @@
         models: {
             geminiChat: 'gemini-2.5-flash',
             openaiChat: 'gpt-5.5',
-            tfChat: 'glm-5.3',
+            tfChat: 'claude-sonnet-5[1m]',
             geminiImage: 'gemini-2.5-flash-image',
             openaiImage: 'gpt-image-1',
             geminiVideo: 'veo-3.1-fast-generate-preview',
@@ -414,7 +414,7 @@
     }
 
     /* ==================================================================== */
-    /* TOKENFORGE GATEWAY (ai.studio) — chat tương thích OpenAI             */
+    /* TOKENFORGE GATEWAY — Anthropic Messages-compatible                   */
     /* ==================================================================== */
     async function tfFetch(path, opts = {}) {
         const c = loadConfig();
@@ -423,7 +423,8 @@
         const resp = await fetch(`${base}${path}`, {
             method: opts.method || 'POST',
             headers: {
-                Authorization: `Bearer ${c.tfKey}`,
+                'x-api-key': c.tfKey,
+                'anthropic-version': '2023-06-01',
                 'Content-Type': 'application/json',
             },
             body: opts.json ? JSON.stringify(opts.json) : undefined,
@@ -432,27 +433,37 @@
         return resp;
     }
 
+    function toAnthropicMessages(messages) {
+        const system = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n');
+        const converted = messages.filter((message) => message.role !== 'system').map((message) => ({
+            role: message.role === 'assistant' ? 'assistant' : 'user',
+            content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content),
+        }));
+        return { system: system || undefined, messages: converted };
+    }
+
     async function tokenforgeChat(messages, opts = {}) {
         const c = loadConfig();
-        const resp = await tfFetch('/chat/completions', {
+        const converted = toAnthropicMessages(messages);
+        const resp = await tfFetch('/v1/messages', {
             json: {
-                model: opts.model || c.models.tfChat || 'glm-5.3',
-                messages,
-                stream: false,
+                model: opts.model || c.models.tfChat || 'claude-sonnet-5[1m]',
+                system: converted.system,
+                messages: converted.messages,
+                max_tokens: opts.max_tokens || 4096,
                 temperature: opts.temperature,
-                max_tokens: opts.max_tokens,
             },
         });
         const json = await resp.json();
-        const text = json.choices?.[0]?.message?.content ?? '';
+        const text = (json.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('');
         if (!text) throw new Error('TokenForge trả về rỗng');
-        return typeof text === 'string' ? text : JSON.stringify(text);
+        return text;
     }
 
     async function listTokenforgeModels() {
-        const resp = await tfFetch('/models', { method: 'GET' });
+        const resp = await tfFetch('/v1/models', { method: 'GET' });
         const json = await resp.json();
-        return (json.data || []).map((m) => m.id);
+        return (json.data || json.models || []).map((model) => model.id || model.name).filter(Boolean);
     }
 
     async function tokenforgeTest() {
@@ -493,7 +504,7 @@
             openaiImage: ['gpt-image-1', 'gpt-image-1-mini', 'gpt-image-2'],
             geminiVideo: ['veo-3.1-generate-preview', 'veo-3.1-fast-generate-preview', 'veo-3.1-lite-generate-preview'],
             openaiVideo: ['sora-2-pro', 'sora-2'],
-            tfChat: ['glm-5.3', 'claude-opus-5'],
+            tfChat: ['claude-sonnet-5[1m]', 'claude-opus-5[1m]', 'claude-opus-4.8[1m]', 'claude-haiku-4-5', 'claude-sonnet-5'],
             geminiVoice: ['gemini-2.5-flash-preview-tts', 'gemini-2.5-pro-preview-tts', 'gemini-3.1-flash-tts-preview'],
             openaiVoice: ['gpt-4o-mini-tts', 'tts-1-hd', 'tts-1'],
         },
