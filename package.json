@@ -3,11 +3,14 @@
     "version": "1.1.0",
     "private": true,
     "type": "module",
+    "description": "ViralForge 2026 — Video Production OS (Puter AI Edition).",
     "packageManager": "pnpm@9.15.4",
-    "engines": { "node": ">=18" },
+    "engines": {
+        "node": ">=18"
+    },
     "scripts": {
-        "dev": "python3 -m http.server 8080",
-        "build": "echo No build step required"
+        "dev": "npx serve . --listen 8080 --no-clipboard",
+        "build": "echo No build step required (pure static + Vercel serverless)"
     },
     "dependencies": {
         "@vercel/blob": "^1.1.0"
