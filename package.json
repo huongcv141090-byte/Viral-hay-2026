@@ -1,26 +1,15 @@
-{
+﻿{
     "name": "viralforge-2026",
     "version": "1.1.0",
     "private": true,
     "type": "module",
-    "description": "ViralForge 2026 — Video Production OS (Puter AI Edition). Frontend thu\u1ea7n static + /api/store (Vercel Blob).",
     "packageManager": "pnpm@9.15.4",
-    "engines": {
-        "node": ">=18"
-    },
+    "engines": { "node": ">=18" },
     "scripts": {
-        "dev": "npx serve . --listen 8080 --no-clipboard",
-        "dev:py": "python3 -m http.server 8080",
-        "lint": "echo 'No build step (pure static) — lint skipped'",
-        "build": "echo 'No build step required (pure static + Vercel serverless)'",
-        "deploy": "vercel --prod",
-        "deploy:preview": "vercel"
+        "dev": "python3 -m http.server 8080",
+        "build": "echo No build step required"
     },
     "dependencies": {
         "@vercel/blob": "^1.1.0"
-    },
-    "devDependencies": {
-        "serve": "^14.2.4",
-        "vercel": "^39.0.0"
     }
 }
