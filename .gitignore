@@ -1,0 +1,42 @@
+# ============================================================
+# ViralForge 2026 — .gitignore
+# ============================================================
+
+# --- API keys (TUYỆT ĐỐI không commit) ---
+js/secrets.js
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- Node / pnpm ---
+node_modules/
+.pnpm-store/
+
+# --- Build / dist ---
+dist/
+.output/
+.vercel/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor ---
+.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# --- Logs ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# --- Temp ---
+*.tmp
+*.bak
+*.swp

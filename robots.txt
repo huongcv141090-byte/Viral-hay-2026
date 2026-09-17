@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Không index JS có thể lộ key (secrets.js bị gitignore nhưng phòng xa)
+Disallow: /js/secrets.js
+
+# Không index API endpoints
+Disallow: /api/
+
+Sitemap: https://viral-hay-2026.vercel.app/sitemap.xml

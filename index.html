@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViralForge 2026 — Puter AI Edition · Video Production OS</title>
+    <!-- Open Graph / Social sharing -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ViralForge 2026 — Puter AI Edition" />
+    <meta property="og:description" content="Dây chuyền sản xuất video faceless: Ý tưởng → Kịch bản → Ảnh → Giọng đọc → Video → Viral → Doanh thu." />
+    <meta name="theme-color" content="#0d0d0f" />
+        <meta name="description" content="Dây chuyền sản xuất video faceless: Ý tưởng → Kịch bản → Ảnh → Giọng đọc → Video → Viral → Doanh thu. Đấu nối Puter AI với các model mới nhất.">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E">
+    <!-- Keys "môi trường" — nạp trước tất cả (đã gitignore) -->
+    <!-- VF_ENV: key môi trường (gitignored). Nếu thiếu file, tạo stub trống -->
+    <script>
+        (function () {
+            var s = document.createElement('script');
+            s.src = 'js/secrets.js';
+            s.onerror = function () {
+                if (!window.VF_ENV) window.VF_ENV = {};
+            };
+            document.currentScript.parentNode.insertBefore(s, document.currentScript.nextSibling);
+        })();
+    </script>
+    <!-- Puter.js — toàn bộ AI chạy qua đây, không cần API key (User Pays model) -->
+    <script src="https://js.puter.com/v2/"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- ================= TOPBAR ================= -->
+    <header class="topbar">
+        <div class="brand">
+            <span class="brand-logo">⚡</span>
+            <div>
+                <div class="brand-name">VIRALFORGE <span class="accent">2026</span></div>
+                <div class="brand-sub">PUTER AI EDITION · VIDEO PRODUCTION OS</div>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <button class="nav-btn active" data-view="pipeline">🧵 Dây chuyền</button>
+            <button class="nav-btn" data-view="models">🧠 Model Hub</button>
+            <button class="nav-btn" data-view="library">📚 Thư viện</button>
+            <button class="nav-btn" data-view="revenue">💰 Thu nhập</button>
+            <button class="nav-btn" data-view="settings">⚙️ Cài đặt</button>
+        </nav>
+
+        <div class="top-actions">
+            <label class="testmode" title="Chế độ thử nghiệm: dùng ảnh/audio/video mẫu của Puter, không tốn credits">
+                <input type="checkbox" id="testmode-toggle" checked>
+                <span>🧪 Chế độ thử nghiệm</span>
+            </label>
+            <button id="pro-chip" class="pro-chip hidden" title="Tài khoản Pro đang đấu nối">💎 Pro</button>
+        </div>
+    </header>
+
+    <main>
+    <!-- ================= VIEW: PIPELINE ================= -->
+    <section id="view-pipeline" class="view active">
+        <div class="hero">
+            <div class="hero-banner">
+                IDEA → SCRIPT → IMAGE → VOICE → VIDEO → VIRAL → REVENUE
+            </div>
+            <div class="hero-chips">
+                <span class="chip">🧠 GPT-5.6 Luna · Claude Sonnet 5</span>
+                <span class="chip">🖼️ GPT Image 2.5 · Nano Banana 2</span>
+                <span class="chip">🎬 Veo 3.1 · Seedance 2.5 · Kling 2.1</span>
+                <span class="chip">🎙️ Eleven v3 · Gemini 3.1 TTS</span>
+                <span class="chip">🇻🇳 Chạy được KHÔNG cần Puter khi có key (TokenForge/Gemini) — video mới cần Puter</span>
+            </div>
+        </div>
+
+        <!-- Combos -->
+        <div class="combo-bar card">
+            <span class="step-tag">COMBO</span>
+            <select id="combo-select"></select>
+            <button id="btn-apply-combo" class="btn ghost">Áp dụng combo</button>
+            <span class="hint" id="combo-hint"></span>
+        </div>
+
+        <!-- Banner chế độ thử nghiệm -->
+        <div id="test-banner" class="test-banner hidden">
+            <div>
+                <b>🧪 CHẾ ĐỘ THỬ NGHIỆM đang bật</b> — ảnh / giọng đọc / clip bạn nhận được là <b>media MẪU</b> của Puter (miễn phí, lặp lại giống nhau, chữ "SUCCESS!" in trên ảnh là dấu hiệu).
+            </div>
+            <div>
+                Muốn tạo <b>nội dung THẬT</b>: ① tắt công tắc 🧪 ở thanh trên → ② đăng nhập Puter (chip góc phải, miễn phí) <i>hoặc</i> nhập key 💎 Pro ở tab Cài đặt → ③ bấm sinh lại ảnh/giọng/clip.
+            </div>
+        </div>
+
+        <!-- ============ STEP 01: BRIEF + Ý TƯỞNG ============ -->
+        <article class="step card" id="step-01">
+            <header class="step-head">
+                <span class="step-num">01</span>
+                <div>
+                    <h2>Ý tưởng <small>Idea Lab</small></h2>
+                    <p class="step-desc">Điền brief → AI đề xuất 5 ý tưởng viral. <b>Ưu tiên key của bạn</b> (TokenForge → Gemini → OpenAI — cấu hình tab Cài đặt), Puter chỉ là dự phòng.</p>
+                </div>
+            </header>
+            <div class="grid-4">
+                <label>Chủ đề *<input id="bf-topic" placeholder="VD: sự tích hồ Hoàn Kiếm" /></label>
+                <label>Niche<input id="bf-niche" placeholder="VD: lịch sử Việt" /></label>
+                <label>Khán giả mục tiêu<input id="bf-audience" placeholder="VD: 18-30, thích lịch sử" /></label>
+                <label>Thời lượng
+                    <select id="bf-duration">
+                        <option value="30">30 giây</option>
+                        <option value="45" selected>45 giây</option>
+                        <option value="60">60 giây</option>
+                        <option value="90">90 giây</option>
+                    </select>
+                </label>
+                <label>Nền tảng
+                    <select id="bf-platform">
+                        <option value="tiktok_youtube" selected>TikTok & YouTube Shorts</option>
+                        <option value="facebook_reels">Facebook Reels</option>
+                        <option value="instagram_reels">Instagram Reels</option>
+                        <option value="x">X (Twitter)</option>
+                        <option value="multi">Đa nền tảng</option>
+                    </select>
+                </label>
+                <label>Phong cách
+                    <select id="bf-style">
+                        <option value="storytelling" selected>Kể chuyện</option>
+                        <option value="mystery">Bí ẩn</option>
+                        <option value="explainer">Giải thích</option>
+                        <option value="motivation">Truyền động lực</option>
+                        <option value="review">Review chân thật</option>
+                    </select>
+                </label>
+                <label>Mục tiêu kênh
+                    <select id="bf-goal">
+                        <option value="views" selected>Max views</option>
+                        <option value="followers">Tăng follow</option>
+                        <option value="money">Doanh thu / affiliate</option>
+                    </select>
+                </label>
+                <label>Model chat
+                    <select id="bf-chat-model"></select>
+                </label>
+                <label>Ngôn ngữ đọc
+                    <select id="bf-lang"></select>
+                </label>
+            </div>
+            <div class="step-actions">
+                <button id="btn-ideas" class="btn primary">✦ Đề xuất 5 ý tưởng</button>
+                <span class="engine-tag" id="engine-chat"></span>
+                <span class="status" id="ideas-status"></span>
+            </div>
+            <div id="ideas-list" class="cards-3"></div>
+
+            <!-- ============ STEP 02: CẢI TIẾN ============ -->
+            <div class="substep" id="step-02">
+                <h3><span class="step-num small">02</span> Cải tiến ý tưởng đã chọn</h3>
+                <div class="step-actions">
+                    <button id="btn-refine" class="btn">✧ Cải tiến ý tưởng</button>
+                    <span class="status" id="refine-status"></span>
+                </div>
+                <div id="refined-out" class="out muted">Chọn 1 ý tưởng ở trên rồi bấm "Cải tiến".</div>
+            </div>
+        </article>
+
+        <!-- ============ STEP 03: BLUEPRINT ============ -->
+        <article class="step card" id="step-03">
+            <header class="step-head">
+                <span class="step-num">03</span>
+                <div>
+                    <h2>Blueprint <small>Kịch bản + shot list</small></h2>
+                    <p class="step-desc">AI sinh kịch bản từng scene: lời thoại, prompt ảnh (Tiếng Anh), góc máy. Bạn có thể sửa trực tiếp.</p>
+                </div>
+            </header>
+            <div class="step-actions">
+                <button id="btn-blueprint" class="btn primary">✦ Tạo Viral Blueprint</button>
+                <span class="sep">|</span>
+                <label class="file-btn">📷 Nhập kịch bản từ ảnh (OCR)
+                    <input type="file" id="ocr-file" accept="image/*" hidden>
+                </label>
+                <select id="ocr-provider" class="mini">
+                    <option value="aws-textract">Textract</option>
+                    <option value="mistral">Mistral OCR</option>
+                </select>
+                <span class="status" id="blueprint-status"></span>
+            </div>
+            <div id="blueprint-meta" class="out muted"></div>
+            <div id="scenes-editor" class="scenes"></div>
+        </article>
+
+        <!-- ============ STEP 04: HÌNH ẢNH ============ -->
+        <article class="step card" id="step-04">
+            <header class="step-head">
+                <span class="step-num">04</span>
+                <div>
+                    <h2>Hình ảnh <small>puter.ai.txt2img()</small></h2>
+                    <p class="step-desc">Sinh ảnh 9:16 cho từng scene bằng model mới nhất.</p>
+                </div>
+            </header>
+            <div class="grid-4">
+                <label>Model ảnh<select id="img-model"></select></label>
+                <label>Chất lượng / độ phân giải<select id="img-quality"></select></label>
+                <label>Khổ ảnh
+                    <select id="img-ratio">
+                        <option value="9:16" selected>9:16 dọc (Shorts/Reels)</option>
+                        <option value="1:1">1:1 vuông</option>
+                        <option value="16:9">16:9 ngang</option>
+                    </select>
+                </label>
+                <label class="check-label"><input type="checkbox" id="img-save-puter"> Lưu ảnh vào Puter Drive</label>
+            </div>
+            <p class="hint" id="img-model-hint"></p>
+            <div class="step-actions">
+                <button id="btn-images" class="btn primary">✦ Sinh ảnh cho toàn bộ scene</button>
+                <span class="engine-tag" id="engine-image"></span>
+                <span class="status" id="images-status"></span>
+            </div>
+            <div class="progress hidden" id="images-progress"><div></div></div>
+            <div id="images-grid" class="thumbs"></div>
+        </article>
+
+        <!-- ============ STEP 05: GIỌNG ĐỌC ============ -->
+        <article class="step card" id="step-05">
+            <header class="step-head">
+                <span class="step-num">05</span>
+                <div>
+                    <h2>Giọng đọc <small>puter.ai.txt2speech()</small></h2>
+                    <p class="step-desc">TTS từng scene để đồng bộ thời lượng chính xác khi dựng video.</p>
+                </div>
+            </header>
+            <div class="grid-4">
+                <label>Nhà cung cấp<select id="tts-provider"></select></label>
+                <label>Model<select id="tts-model"></select></label>
+                <label>Giọng<select id="tts-voice"></select></label>
+                <label>Ngôn ngữ<select id="tts-lang"></select></label>
+                <label id="tts-engine-wrap">Engine (Polly)<select id="tts-engine">
+                    <option value="auto">Tự động</option>
+                    <option value="standard">standard</option>
+                    <option value="neural" selected>neural</option>
+                    <option value="long-form">long-form</option>
+                    <option value="generative">generative</option>
+                </select></label>
+                <label>Voice ID tùy chỉnh (ElevenLabs/Polly)<input id="tts-voice-custom" placeholder="Dán voice ID để ghi đè" /></label>
+                <label>Chỉ dẫn cảm xúc (instructions)<input id="tts-instructions" placeholder="VD: đọc hào hứng, nhanh nhẹn" /></label>
+            </div>
+            <p class="hint" id="tts-hint"></p>
+            <div class="step-actions">
+                <button id="btn-voice" class="btn primary">🎙️ Sinh giọng đọc toàn bộ kịch bản</button>
+                <span class="engine-tag" id="engine-voice"></span>
+                <span class="status" id="voice-status"></span>
+            </div>
+            <div class="progress hidden" id="voice-progress"><div></div></div>
+            <div id="voice-list" class="voice-list"></div>
+
+            <!-- VoiceStudio trên máy bạn — giọng đa ngôn ngữ + clone -->
+            <div class="substep vs-box" id="vs-box">
+                <h3>🖥️ VoiceStudio <small>chạy trên máy bạn · 646 ngôn ngữ · clone giọng · miễn phí</small></h3>
+                <p class="step-desc">Đấu nối <a href="https://github.com/debpalash/VoiceStudio" target="_blank" rel="noopener">VoiceStudio</a> qua API tương thích OpenAI (cổng 3900) — engine TTS cục bộ (OmniVoice, VoxCPM2, CosyVoice…), dùng giọng bạn đã clone trong app VoiceStudio. Không tốn credits.</p>
+                <div class="grid-4">
+                    <label>Địa chỉ backend<input id="vs-url" placeholder="http://127.0.0.1:3900" /></label>
+                    <label>API key (nếu đặt OMNIVOICE_API_KEY)<input id="vs-key" type="password" placeholder="tuỳ chọn" autocomplete="off" /></label>
+                    <label>Engine TTS<select id="vs-engine">
+                        <option value="omnivoice">omnivoice</option>
+                        <option value="voxcpm2">voxcpm2 (voice-design)</option>
+                        <option value="cosyvoice">cosyvoice</option>
+                        <option value="kittentts">kittentts (nhẹ)</option>
+                        <option value="moss-tts-nano">moss-tts-nano</option>
+                    </select></label>
+                    <label>Giọng<select id="vs-voice"><option value="default">default</option></select></label>
+                    <label>Tốc độ đọc (0.25–4)<input id="vs-speed" type="number" min="0.25" max="4" step="0.05" value="1" /></label>
+                    <label>Chỉ dẫn style (instruct)<input id="vs-instruct" placeholder="VD: đọc tự nhiên, ấm áp" /></label>
+                    <div class="check-label" style="align-self:end"><input type="checkbox" id="vs-enabled"> 🎙️ Dùng VoiceStudio cho giọng đọc</div>
+                    <div style="align-self:end"><button id="btn-vs-test" class="btn ghost">🔌 Kiểm tra kết nối</button></div>
+                </div>
+                <p class="hint" id="vs-status"></p>
+                <details class="vs-help">
+                    <summary>⚙️ Cách mở CORS cho VoiceStudio (bắt buộc 1 lần)</summary>
+                    <p>Mặc định VoiceStudio chỉ cho phép UI của nó (cổng 3901). Thêm origin của app vào biến môi trường trước khi chạy backend:</p>
+                    <p><code>OMNIVOICE_ALLOWED_ORIGINS=http://127.0.0.1:8899,http://localhost:8899</code></p>
+                    <p>· <b>Docker</b>: <code>docker run -e OMNIVOICE_ALLOWED_ORIGINS=… -p 127.0.0.1:3900:3900 palashdeb/omnivoice-studio:stable</code><br>
+                    · <b>App desktop</b>: đặt biến môi trường hệ thống cùng tên rồi khởi động lại VoiceStudio.</p>
+                </details>
+            </div>
+
+            <!-- Tools: voice changer + STT -->
+            <div class="substep tools">
+                <h3>🧰 Công cụ studio</h3>
+                <div class="grid-2">
+                    <div class="tool-box">
+                        <h4>Voice Changer <small>speech2speech · ElevenLabs</small></h4>
+                        <div class="row">
+                            <label class="file-btn">Chọn file ghi âm<input type="file" id="vc-file" accept="audio/*" hidden></label>
+                            <select id="vc-voice" class="mini"></select>
+                            <button id="btn-vc" class="btn ghost">Đổi giọng</button>
+                        </div>
+                        <audio id="vc-audio" controls class="hidden"></audio>
+                    </div>
+                    <div class="tool-box">
+                        <h4>Phiên âm <small>speech2txt · Whisper/GPT-4o</small></h4>
+                        <div class="row">
+                            <label class="file-btn">Chọn file audio<input type="file" id="stt-file" accept="audio/*" hidden></label>
+                            <select id="stt-model" class="mini"></select>
+                            <button id="btn-stt" class="btn ghost">Phiên âm</button>
+                        </div>
+                        <div id="stt-out" class="out small"></div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- ============ STEP 06: VIDEO ============ -->
+        <article class="step card" id="step-06">
+            <header class="step-head">
+                <span class="step-num">06</span>
+                <div>
+                    <h2>Video <small>puter.ai.txt2vid() + compositor</small></h2>
+                    <p class="step-desc">Bước A: sinh clip AI cho từng scene (ảnh → video). Bước B: dựng video hoàn chỉnh trong trình duyệt — Ken Burns, phụ đề động, ghép giọng đọc — không cần FFmpeg.</p>
+                </div>
+            </header>
+
+            <div class="substep">
+                <h4>A · Clip AI cho từng scene (image-to-video)</h4>
+                <div class="grid-4">
+                    <label>Model video<select id="vid-model"></select></label>
+                    <label>Thời lượng (giây)<select id="vid-seconds"></select></label>
+                    <label>Độ phân giải<select id="vid-size"></select></label>
+                    <label class="check-label"><input type="checkbox" id="vid-audio" checked> Sinh âm thanh nền (nếu model hỗ trợ)</label>
+                </div>
+                <p class="hint" id="vid-model-hint"></p>
+                <p class="hint warn" id="vid-cost-hint"></p>
+                <div class="step-actions">
+                    <button id="btn-clips" class="btn primary">✦ Sinh clip AI cho toàn bộ scene</button>
+                    <span class="engine-tag" id="engine-video"></span>
+                    <span class="status" id="clips-status"></span>
+                </div>
+                <div class="progress hidden" id="clips-progress"><div></div></div>
+                <div id="clips-grid" class="thumbs"></div>
+            </div>
+
+            <div class="substep">
+                <h4>B · Dựng video hoàn chỉnh (9:16, trong trình duyệt)</h4>
+                <div class="step-actions">
+                    <button id="btn-render" class="btn primary">🎬 Dựng video hoàn chỉnh</button>
+                    <span class="status" id="render-status"></span>
+                </div>
+                <div class="progress hidden" id="render-progress"><div></div></div>
+                <div id="render-out" class="render-out"></div>
+            </div>
+        </article>
+
+        <!-- ============ STEP 07: VIRAL ============ -->
+        <article class="step card" id="step-07">
+            <header class="step-head">
+                <span class="step-num">07</span>
+                <div>
+                    <h2>Viral <small>Gói phân phối</small></h2>
+                    <p class="step-desc">Caption + hashtag + giờ đăng vàng cho từng nền tảng.</p>
+                </div>
+            </header>
+            <div class="step-actions">
+                <button id="btn-viral" class="btn primary">✦ Tạo gói phân phối</button>
+                <span class="status" id="viral-status"></span>
+            </div>
+            <div id="viral-out" class="cards-3"></div>
+        </article>
+    </section>
+
+    <!-- ================= VIEW: MODEL HUB ================= -->
+    <section id="view-models" class="view">
+        <div class="view-head">
+            <h1>🧠 Model Hub — model mới nhất qua Puter AI</h1>
+            <p class="step-desc">Toàn bộ model dưới đây gọi trực tiếp qua <code>js.puter.com/v2</code>, không cần API key. Xem chi tiết tuỳ chọn tại <a href="https://docs.puter.com/AI/" target="_blank" rel="noopener">docs.puter.com/AI</a>.</p>
+        </div>
+        <div id="models-catalog" class="catalog"></div>
+
+        <div class="card">
+            <div class="step-actions">
+                <h3 style="margin:0">Danh mục chat model trực tiếp từ Puter</h3>
+                <button id="btn-load-all-models" class="btn ghost">Tải danh sách + giá</button>
+                <input id="all-models-filter" class="mini" placeholder="Lọc model…" />
+                <span class="status" id="all-models-status"></span>
+            </div>
+            <div class="table-wrap"><table id="all-models-table"><thead>
+                <tr><th>Model</th><th>Provider</th><th>Context</th><th>Giá in/out (USD/1M tok)</th></tr>
+            </thead><tbody></tbody></table></div>
+        </div>
+    </section>
+
+    <!-- ================= VIEW: LIBRARY ================= -->
+    <section id="view-library" class="view">
+        <div class="view-head">
+            <h1>📚 Thư viện dự án</h1>
+            <p class="step-desc">Blueprint đã lưu trên máy này. Xuất JSON để sao lưu, hoặc lưu lên Puter KV ở tab Cài đặt.</p>
+        </div>
+        <div class="step-actions">
+            <button id="btn-lib-save" class="btn primary">💾 Lưu dự án hiện tại vào thư viện</button>
+            <button id="btn-lib-refresh" class="btn ghost">Làm mới</button>
+            <span class="status" id="lib-status"></span>
+        </div>
+        <div id="library-list" class="cards-3"></div>
+    </section>
+
+    <!-- ================= VIEW: REVENUE ================= -->
+    <section id="view-revenue" class="view">
+        <div class="view-head">
+            <h1>💰 Theo dõi thu nhập</h1>
+            <p class="step-desc">Nhập tay số liệu mỗi nền tảng. Dữ liệu lưu tại máy. <b>THAM KHẢO, KHÔNG PHẢI TƯ VẤN TÀI CHÍNH.</b></p>
+        </div>
+        <div class="card">
+            <div class="grid-6">
+                <label>Nền tảng<select id="rv-platform">
+                    <option value="tiktok">TikTok</option>
+                    <option value="youtube">YouTube Shorts</option>
+                    <option value="facebook">Facebook Reels</option>
+                    <option value="instagram">Instagram Reels</option>
+                    <option value="x">X</option>
+                </select></label>
+                <label>Nguồn<select id="rv-source">
+                    <option value="creator_fund">Creator Fund</option>
+                    <option value="affiliate">Affiliate</option>
+                    <option value="brand">Brand deal</option>
+                    <option value="digital">Sản phẩm số</option>
+                    <option value="adsense">AdSense</option>
+                </select></label>
+                <label>Views<input id="rv-views" type="number" min="0" value="0" /></label>
+                <label>Likes<input id="rv-likes" type="number" min="0" value="0" /></label>
+                <label>Follower mới<input id="rv-followers" type="number" min="0" value="0" /></label>
+                <label>Doanh thu (USD)<input id="rv-usd" type="number" min="0" step="0.01" value="0" /></label>
+            </div>
+            <div class="step-actions">
+                <button id="btn-rv-save" class="btn primary">Lưu bản ghi</button>
+                <span class="status" id="rv-status"></span>
+            </div>
+            <div class="table-wrap">
+                <table id="rv-table"><thead>
+                    <tr><th>Ngày</th><th>Nền tảng</th><th>Nguồn</th><th>Views</th><th>Likes</th><th>+Follow</th><th>USD</th><th></th></tr>
+                </thead><tbody></tbody></table>
+            </div>
+            <div id="rv-totals" class="totals"></div>
+        </div>
+    </section>
+
+    <!-- ================= VIEW: SETTINGS ================= -->
+    <section id="view-settings" class="view">
+        <div class="view-head">
+            <h1>⚙️ Cài đặt</h1>
+        </div>
+        <!-- ============ TÀI KHOẢN PRO (BYOK) ============ -->
+        <div class="card pro-card">
+            <h3>💎 Tài khoản Pro — dùng key Gemini / ChatGPT của bạn</h3>
+            <p class="step-desc">Nhập API key để gọi <b>trực tiếp</b> Google Gemini (Veo, Nano Banana, Gemini TTS) hoặc OpenAI (GPT, GPT Image, Sora) — chất lượng tối đa theo gói của bạn. Key chỉ lưu trong trình duyệt này và chỉ gửi thẳng tới nhà cung cấp.</p>
+            <div class="grid-2">
+                <label>Google Gemini API key <small>(lấy miễn phí tại aistudio.google.com/apikey)</small>
+                    <input id="pro-gemini-key" type="password" placeholder="AIza…" autocomplete="off" />
+                </label>
+                <label>OpenAI API key <small>(tại platform.openai.com/api-keys)</small>
+                    <input id="pro-openai-key" type="password" placeholder="sk-…" autocomplete="off" />
+                </label>
+            </div>
+            <div class="step-actions">
+                <button id="btn-test-gemini" class="btn ghost">Kiểm tra key Gemini</button>
+                <button id="btn-test-openai" class="btn ghost">Kiểm tra key OpenAI</button>
+                <button id="btn-test-tf" class="btn ghost">Kiểm tra TokenForge</button>
+                <span class="status" id="pro-test-status"></span>
+            </div>
+
+            <!-- TokenForge gateway -->
+            <div class="substep tf-box">
+                <h4>🔷 TokenForge <small>gateway ai.studio · API tương thích OpenAI · chat</small></h4>
+                <div class="grid-4">
+                    <label>TokenForge API key<input id="pro-tf-key" type="password" placeholder="tf_live_…" autocomplete="off" /></label>
+                    <label>Base URL<input id="pro-tf-url" placeholder="https://tokenforge.ai.studio/v1" /></label>
+                    <label>Model chat
+                        <input id="pro-model-tf" list="dl-tf" placeholder="glm-5.3 / claude-opus-5…" />
+                        <datalist id="dl-tf"></datalist>
+                    </label>
+                    <div style="align-self:end"><button id="btn-tf-models" class="btn ghost">Tải danh sách model</button></div>
+                </div>
+                <p class="hint" id="tf-hint">Chỉ dùng cho Kịch bản (chat). Service đang bảo trì → app tự chuyển Puter cho tới khi hết bảo trì.</p>
+            </div>
+
+            <h4 style="margin:14px 0 8px">Bộ máy cho từng loại tác vụ</h4>
+            <div class="grid-4">
+                <label>Kịch bản (chat)
+                    <select id="pro-engine-chat">
+                        <option value="auto">Tự động (key của bạn → Puter)</option>
+                        <option value="gemini">Gemini trực tiếp 💎</option>
+                        <option value="openai">ChatGPT trực tiếp 💎</option>
+                        <option value="tokenforge">TokenForge trực tiếp 🔷</option>
+                    </select>
+                </label>
+                <label>Model chat trực tiếp
+                    <input id="pro-model-chat" list="dl-chat" placeholder="gpt-5.5 / gemini-2.5-flash…" />
+                    <datalist id="dl-chat"></datalist>
+                </label>
+                <label>Hình ảnh
+                    <select id="pro-engine-image">
+                        <option value="auto">Tự động (key của bạn → Puter)</option>
+                        <option value="gemini">Gemini trực tiếp 💎</option>
+                        <option value="openai">ChatGPT trực tiếp 💎</option>
+                    </select>
+                </label>
+                <label>Model ảnh trực tiếp
+                    <input id="pro-model-image" list="dl-image" placeholder="gemini-3-pro-image-preview…" />
+                    <datalist id="dl-image"></datalist>
+                </label>
+                <label>Video
+                    <select id="pro-engine-video">
+                        <option value="auto">Tự động (key của bạn → Puter)</option>
+                        <option value="gemini">Veo trực tiếp 💎</option>
+                        <option value="openai">Sora trực tiếp 💎</option>
+                    </select>
+                </label>
+                <label>Model video trực tiếp
+                    <input id="pro-model-video" list="dl-video" placeholder="veo-3.1… / sora-2…" />
+                    <datalist id="dl-video"></datalist>
+                </label>
+                <label>Giọng đọc
+                    <select id="pro-engine-voice">
+                        <option value="auto">Tự động (key của bạn → Puter)</option>
+                        <option value="gemini">Gemini TTS trực tiếp 💎</option>
+                        <option value="openai">OpenAI TTS trực tiếp 💎</option>
+                    </select>
+                </label>
+                <label>Model giọng trực tiếp
+                    <input id="pro-model-voice" list="dl-voice" placeholder="gpt-4o-mini-tts / gemini-2.5…" />
+                    <datalist id="dl-voice"></datalist>
+                </label>
+            </div>
+            <p class="hint">Gemini TTS dùng giọng dựng sẵn (Kore, Puck, Zephyr…); OpenAI TTS dùng alloy, ash, coral… — nhập tên giọng ở bước 05 như thường.</p>
+            <div class="step-actions">
+                <label class="check-label"><input type="checkbox" id="pro-autofallback" checked> Tự động chuyển sang Puter khi Pro gặp lỗi (hết quota, key sai, model không khả dụng)</label>
+            </div>
+            <div class="grid-2">
+                <div class="pro-note ok">
+                    ✅ <b>Free tier của key Gemini (AI Studio) thường dùng được:</b> <code>gemini-2.5-flash</code> (kịch bản) · <code>gemini-2.5-flash-image</code> (ảnh Nano Banana 1) · <code>gemini-2.5-flash-preview-tts</code> (giọng) — giới hạn theo phút/ngày. Model <code>gemini-3-pro-image</code>/<code>gemini-3.1-flash-image</code> ghi <b>limit: 0</b> = KHÔNG có free tier.
+                </div>
+                <div class="pro-note">
+                    💳 <b>Cần bật thanh toán (billing) cho key mới chạy được:</b> toàn bộ <code>veo-3.1-*</code> (video) · ảnh Pro <code>gemini-3-pro-image</code> · <code>sora-2</code> (OpenAI, cần nạp credit API). Lỗi "Quota exceeded … limit: 0" chính là trường hợp này.
+                </div>
+            </div>
+            <div class="pro-note muted">
+                ❓ <b>Vì sao không "đăng nhập thẳng Google/ChatGPT" được?</b> Gói Pro trên web (ChatGPT Plus, Google AI Pro) chỉ dùng trong web/app chính chủ — Google và OpenAI <b>không có cơ chế OAuth</b> cấp quyền sinh ảnh/video/giọng cho app bên thứ ba theo gói đó. Cầu nối chính thức duy nhất chính là API key (cách app đang làm); tự động hoá đăng nhập web sẽ vi phạm điều khoản dịch vụ của cả hai nhà cung cấp.
+            </div>
+            <div class="pro-note">
+                ⚠️ <b>Điều cần biết về chi phí:</b> gói đăng ký <b>ChatGPT Plus</b> và <b>Gemini Advanced (Google AI Pro)</b> là gói dùng trên web/app — <b>không bao gồm</b> quota API. API key tính phí riêng theo mức dùng:
+                Gemini API có free tier (Nano Banana/TTS dùng được, <b>Veo cần tài khoản API đã bật thanh toán</b>); OpenAI cần nạp credit API (Sora 2 &amp; GPT Image tính theo bản ghi). Video Pro render chậm 1–4 phút/clip.
+                Với đa số người dùng, Puter (bộ máy mặc định) vẫn là cách rẻ và đơn giản nhất.
+            </div>
+        </div>
+
+        <div class="card" id="settings-auth">
+            <h3>Bộ máy AI & đăng nhập</h3>
+            <p class="hint">App dùng <b>key của bạn</b> làm bộ máy chính (TokenForge → Gemini → OpenAI, cấu hình ở thẻ 💎 phía trên) và <b>VoiceStudio</b> trên máy bạn cho giọng đọc — <b>không có/không cần đăng nhập Google hay ChatGPT</b> (họ không cung cấp OAuth cho app thứ ba, xem giải thích trong thẻ 💎).</p>
+            <p class="hint">Puter chỉ còn là <b>engine dự phòng</b> cho video và các tác vụ chưa có key: khi cần, Puter sẽ tự mở cửa sổ đăng nhập của riêng nó ngay tại lúc gọi (không có nút đăng nhập trong app).</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h3>☁️ Lưu trữ đám mây (Vercel Blob)</h3>
+                <p class="step-desc">Dữ liệu dự án + doanh thu + thư viện lưu lên <b>viral-hay-2026-blob</b> của bạn trên Vercel. Dùng được trên bản đã deploy (vercel.app); mở bằng bất kỳ trình duyệt/máy nào.</p>
+                <div class="step-actions">
+                    <button id="btn-cloud-save" class="btn primary">☁️ Lưu lên Vercel Blob</button>
+                    <button id="btn-cloud-load" class="btn ghost">☁️ Tải từ Vercel Blob</button>
+                    <span class="status" id="cloud-status"></span>
+                </div>
+                <p class="hint">Dữ liệu nhạy cảm (key AI) KHÔNG được lưu cloud — key chỉ nằm trong trình duyệt của người nhập.</p>
+            </div>
+            <div class="card">
+                <h3>Dữ liệu dự án (trên máy này)</h3>
+                <div class="step-actions">
+                    <button id="btn-export" class="btn">⬇️ Xuất dự án (JSON)</button>
+                    <label class="btn ghost file-btn">⬆️ Nhập dự án<input type="file" id="import-file" accept="application/json" hidden></label>
+                    <button id="btn-clear" class="btn danger">🗑️ Xoá dự án hiện tại</button>
+                </div>
+                <p class="hint" id="storage-hint"></p>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Giới hạn & lưu ý</h3>
+            <ul class="hint-list">
+                <li>Video AI chậm: từ chục giây tới vài phút mỗi clip — Puter chờ tối đa 10 phút rồi báo <code>upstream_timeout</code>.</li>
+                <li>Mỗi lần sinh thành công tính credits theo model, thời lượng, độ phân giải. Model lỗi KHÔNG tính tiền.</li>
+                <li>Provider URL của clip là tạm thời — hãy tải xuống hoặc lưu qua Puter Drive.</li>
+                <li>Chế độ thử nghiệm trả media mẫu để làm UI, không tốn credits nhưng vẫn kiểm tra tên model & quyền ghi.</li>
+            </ul>
+        </div>
+    </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <footer class="footer">
+        ViralForge 2026 · Puter AI Edition — đấu nối <a href="https://docs.puter.com/AI/" target="_blank" rel="noopener">docs.puter.com/AI</a>
+        với concept pipeline của <a href="https://viral-2026.vercel.app/" target="_blank" rel="noopener">viral-2026.vercel.app</a>. Kết quả AI mang tính tham khảo.
+    </footer>
+
+    <script src="js/models.js?v=20260917" defer></script>
+    <script src="js/store.js?v=20260917" defer></script>
+    <script src="js/voicestudio.js?v=20260917" defer></script>
+    <script src="js/pro.js?v=20260917" defer></script>
+    <script src="js/ai.js?v=20260917" defer></script>
+    <script src="js/render.js?v=20260917" defer></script>
+    <script src="js/app.js?v=20260917" defer></script>
+</body>
+</html>
