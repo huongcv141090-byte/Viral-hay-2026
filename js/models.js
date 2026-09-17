@@ -203,7 +203,7 @@
             models: [
                 { id: 'gemini-3.1-flash-tts-preview', label: 'Gemini 3.1 Flash TTS', badge: 'MỚI NHẤT', note: 'TTS thế hệ mới nhất của Google' },
                 { id: 'gemini-2.5-pro-preview-tts', label: 'Gemini 2.5 Pro TTS', badge: '', note: 'Chất lượng pro' },
-                { id: 'gemini-2.5-flash-preview-tts', label: 'Gemini 2.5 Flash TTS', badge: 'DEFAULT', note: 'Nhanh, 30 giọng dựng sẵn' },
+                { id: 'gemini-2.0-flash-preview-tts', label: 'Gemini 2.5 Flash TTS', badge: 'DEFAULT', note: 'Nhanh, 30 giọng dựng sẵn' },
             ],
             voices: ['Kore', 'Puck', 'Zephyr', 'Charon', 'Fenrir', 'Leda', 'Orus', 'Aoede', 'Callirrhoe', 'Enceladus', 'Iapetus', 'Umbriel', 'Algieba', 'Despina', 'Erinome', 'Algenib', 'Rasalgethi', 'Laomedeia', 'Achernar', 'Alnilam', 'Schedar', 'Gacrux', 'Pulcherrima', 'Achird', 'Zubenelgenubi', 'Vindemiatrix', 'Sadachbia', 'Sadaltager', 'Sulafat', 'Autonoe'],
             voiceDefault: 'Kore',
