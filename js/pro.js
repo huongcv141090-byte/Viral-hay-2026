@@ -1,23 +1,23 @@
-/* =============================================================================
- * ViralForge 2026 — Puter AI Edition
- * js/pro.js — TÀI KHOẢN PRO (BYOK): gọi TRỰC TIẾP API Google Gemini & OpenAI
- *             bằng API key của người dùng, song song với Puter.
+﻿/* =============================================================================
+ * ViralForge 2026 â€” Puter AI Edition
+ * js/pro.js â€” TÃ€I KHOáº¢N PRO (BYOK): gá»i TRá»°C TIáº¾P API Google Gemini & OpenAI
+ *             báº±ng API key cá»§a ngÆ°á»i dÃ¹ng, song song vá»›i Puter.
  *
- * Endpoint đã xác minh:
- *  • Gemini REST  : https://generativelanguage.googleapis.com/v1beta
+ * Endpoint Ä‘Ã£ xÃ¡c minh:
+ *  â€¢ Gemini REST  : https://generativelanguage.googleapis.com/v1beta
  *    - chat/image/tts  : models/{id}:generateContent
- *    - video (Veo)     : models/{id}:predictLongRunning → poll operation
- *                        → response.generateVideoResponse.generatedSamples[0].video.uri
- *  • OpenAI REST  : https://api.openai.com/v1
+ *    - video (Veo)     : models/{id}:predictLongRunning â†’ poll operation
+ *                        â†’ response.generateVideoResponse.generatedSamples[0].video.uri
+ *  â€¢ OpenAI REST  : https://api.openai.com/v1
  *    - chat            : POST /chat/completions
  *    - image           : POST /images/generations (b64_json)
  *    - tts             : POST /audio/speech
- *    - video (Sora)    : POST /videos → poll GET /videos/{id} → GET /videos/{id}/content
+ *    - video (Sora)    : POST /videos â†’ poll GET /videos/{id} â†’ GET /videos/{id}/content
  *
- * BẢO MẬT: key chỉ nằm trong localStorage của trình duyệt này và chỉ gửi
- * thẳng tới endpoint chính thức của nhà cung cấp. Không qua server nào khác.
- * LƯU Ý CHI PHÍ: ChatGPT Plus / Gemini Advanced KHÔNG bao gồm quota API —
- * key API tính phí riêng (Gemini có free tier; Veo/Sora cần billing bật).
+ * Báº¢O Máº¬T: key chá»‰ náº±m trong localStorage cá»§a trÃ¬nh duyá»‡t nÃ y vÃ  chá»‰ gá»­i
+ * tháº³ng tá»›i endpoint chÃ­nh thá»©c cá»§a nhÃ  cung cáº¥p. KhÃ´ng qua server nÃ o khÃ¡c.
+ * LÆ¯U Ã CHI PHÃ: ChatGPT Plus / Gemini Advanced KHÃ”NG bao gá»“m quota API â€”
+ * key API tÃ­nh phÃ­ riÃªng (Gemini cÃ³ free tier; Veo/Sora cáº§n billing báº­t).
  * ============================================================================= */
 
 (function (global) {
@@ -30,15 +30,15 @@
     const DEFAULT_CONFIG = {
         geminiKey: '',
         openaiKey: '',
-        /* TokenForge gateway — Anthropic Messages-compatible */
+        /* TokenForge gateway â€” Anthropic Messages-compatible */
         tfKey: '',
-        tfBaseUrl: 'https://tokenforge.ai.studio/v1',
-        /* engine cho từng loại tác vụ: 'auto' (Puter) | 'gemini' | 'openai' | 'tokenforge' (chat) | 'voicestudio' (voice) */
+        tfBaseUrl: 'https://ws-zdt79h6linh4t7no.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1',
+        /* engine cho tá»«ng loáº¡i tÃ¡c vá»¥: 'auto' (Puter) | 'gemini' | 'openai' | 'tokenforge' (chat) | 'voicestudio' (voice) */
         engines: { chat: 'auto', image: 'auto', video: 'auto', voice: 'auto' },
-        /* Khi Pro lỗi (hết quota free tier, key hết hạn, model limit 0…)
-           tự chuyển sang Puter thay vì bỏ lỡ kết quả */
+        /* Khi Pro lá»—i (háº¿t quota free tier, key háº¿t háº¡n, model limit 0â€¦)
+           tá»± chuyá»ƒn sang Puter thay vÃ¬ bá» lá»¡ káº¿t quáº£ */
         autoFallback: true,
-        /* model trực tiếp đang chọn — mặc định ưu tiên model CÓ free tier */
+        /* model trá»±c tiáº¿p Ä‘ang chá»n â€” máº·c Ä‘á»‹nh Æ°u tiÃªn model CÃ“ free tier */
         models: {
             geminiChat: 'gemini-2.5-flash',
             openaiChat: 'gpt-5.5',
@@ -53,7 +53,7 @@
     };
 
     /* ------------------------------------------------------------------ */
-    /* Cấu hình                                                            */
+    /* Cáº¥u hÃ¬nh                                                            */
     /* ------------------------------------------------------------------ */
     let config = null;
     function loadConfig() {
@@ -65,7 +65,7 @@
         } catch (_) {
             config = structuredClone(DEFAULT_CONFIG);
         }
-        /* "Biến môi trường" từ js/secrets.js — tự điền khi còn trống */
+        /* "Biáº¿n mÃ´i trÆ°á»ng" tá»« js/secrets.js â€” tá»± Ä‘iá»n khi cÃ²n trá»‘ng */
         const env = global.VF_ENV || {};
         if (!config.tfKey && env.TOKENFORGE_API_KEY) config.tfKey = env.TOKENFORGE_API_KEY;
         if (env.TOKENFORGE_BASE_URL) config.tfBaseUrl = env.TOKENFORGE_BASE_URL;
@@ -99,9 +99,9 @@
         return c.engines[kind] || 'auto';
     }
 
-    /* 'auto' KHÔNG còn nghĩa là "Puter" — ưu tiên key của user theo thứ tự,
-       chỉ rơi về Puter khi không có key nào cho loại tác vụ đó.
-       (video: chưa có lựa chọn trực tiếp miễn phí → Puter là mặc định) */
+    /* 'auto' KHÃ”NG cÃ²n nghÄ©a lÃ  "Puter" â€” Æ°u tiÃªn key cá»§a user theo thá»© tá»±,
+       chá»‰ rÆ¡i vá» Puter khi khÃ´ng cÃ³ key nÃ o cho loáº¡i tÃ¡c vá»¥ Ä‘Ã³.
+       (video: chÆ°a cÃ³ lá»±a chá»n trá»±c tiáº¿p miá»…n phÃ­ â†’ Puter lÃ  máº·c Ä‘á»‹nh) */
     function resolveAuto(kind) {
         const c = loadConfig();
         if (kind === 'chat') {
@@ -120,7 +120,7 @@
         if (e === 'gemini') return !!loadConfig().geminiKey || 'missing-key';
         if (e === 'openai') return !!loadConfig().openaiKey || 'missing-key';
         if (e === 'tokenforge') return !!loadConfig().tfKey || 'missing-key';
-        /* VoiceStudio chạy trên máy user — chỉ cần bật trong panel của nó */
+        /* VoiceStudio cháº¡y trÃªn mÃ¡y user â€” chá»‰ cáº§n báº­t trong panel cá»§a nÃ³ */
         if (e === 'voicestudio') {
             return (global.VFVS && global.VFVS.isEnabled()) || 'missing-key';
         }
@@ -139,28 +139,28 @@
         try {
             const j = await resp.json();
             detail = j.error?.message || j.message || JSON.stringify(j).slice(0, 300);
-        } catch (_) { /* giữ HTTP status */ }
+        } catch (_) { /* giá»¯ HTTP status */ }
 
-        /* 429 — hết quota. Lỗi phổ biến nhất với key free: model không có
-           free tier ("free_tier_requests, limit: 0") hoặc vượt RPM/RPD */
+        /* 429 â€” háº¿t quota. Lá»—i phá»• biáº¿n nháº¥t vá»›i key free: model khÃ´ng cÃ³
+           free tier ("free_tier_requests, limit: 0") hoáº·c vÆ°á»£t RPM/RPD */
         if (resp.status === 429) {
             const noFreeTier = /limit:\s*0/.test(detail);
-            const err = new Error(`${provider}: hết quota — ${detail}`);
+            const err = new Error(`${provider}: háº¿t quota â€” ${detail}`);
             err.code = 'pro_quota';
             err.friendly = noFreeTier
-                ? `Model này KHÔNG có gói miễn phí (free tier limit: 0) — cần bật thanh toán (billing) cho API key, hoặc đổi model có free tier, hoặc để app tự chuyển qua Puter.`
-                : `${provider} hết quota tạm thời (vượt giới hạn phút/ngày). Chờ một lát, đổi model nhẹ hơn, hoặc để app tự chuyển qua Puter.`;
+                ? `Model nÃ y KHÃ”NG cÃ³ gÃ³i miá»…n phÃ­ (free tier limit: 0) â€” cáº§n báº­t thanh toÃ¡n (billing) cho API key, hoáº·c Ä‘á»•i model cÃ³ free tier, hoáº·c Ä‘á»ƒ app tá»± chuyá»ƒn qua Puter.`
+                : `${provider} háº¿t quota táº¡m thá»i (vÆ°á»£t giá»›i háº¡n phÃºt/ngÃ y). Chá» má»™t lÃ¡t, Ä‘á»•i model nháº¹ hÆ¡n, hoáº·c Ä‘á»ƒ app tá»± chuyá»ƒn qua Puter.`;
             throw err;
         }
 
         const err = new Error(`${provider}: ${detail}`);
         err.code = resp.status === 401 || resp.status === 403 ? 'pro_auth' : 'pro_api';
         if (resp.status === 401 || resp.status === 403) {
-            err.friendly = `${provider} từ chối key — key sai, hết hạn hoặc chưa bật API cần thiết.`;
+            err.friendly = `${provider} tá»« chá»‘i key â€” key sai, háº¿t háº¡n hoáº·c chÆ°a báº­t API cáº§n thiáº¿t.`;
         } else if (/not found|not_supported|unsupported/i.test(detail)) {
-            err.friendly = `${provider}: không nhận model này — kiểm tra lại tên model (bấm nút tải danh sách model để lấy id đúng).`;
+            err.friendly = `${provider}: khÃ´ng nháº­n model nÃ y â€” kiá»ƒm tra láº¡i tÃªn model (báº¥m nÃºt táº£i danh sÃ¡ch model Ä‘á»ƒ láº¥y id Ä‘Ãºng).`;
         } else if (/maintainence|maintenance/i.test(detail)) {
-            err.friendly = `${provider} đang bảo trì (do quá tải) — thử lại sau; app sẽ tự dùng Puter trong thời gian đó.`;
+            err.friendly = `${provider} Ä‘ang báº£o trÃ¬ (do quÃ¡ táº£i) â€” thá»­ láº¡i sau; app sáº½ tá»± dÃ¹ng Puter trong thá»i gian Ä‘Ã³.`;
         } else {
             err.friendly = err.message;
         }
@@ -188,11 +188,11 @@
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
     /* ==================================================================== */
-    /* GEMINI TRỰC TIẾP                                                     */
+    /* GEMINI TRá»°C TIáº¾P                                                     */
     /* ==================================================================== */
     async function gFetch(path, body, method = 'POST') {
         const key = loadConfig().geminiKey;
-        if (!key) { const e = new Error('Chưa có Gemini API key'); e.code = 'pro_auth'; throw e; }
+        if (!key) { const e = new Error('ChÆ°a cÃ³ Gemini API key'); e.code = 'pro_auth'; throw e; }
         const resp = await fetch(`${GEMINI_BASE}/${path}`, {
             method,
             headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -219,7 +219,7 @@
         });
         const parts = json.candidates?.[0]?.content?.parts || [];
         const text = parts.map((p) => p.text || '').join('');
-        if (!text) throw new Error('Gemini trả về rỗng (có thể do bộ lọc an toàn)');
+        if (!text) throw new Error('Gemini tráº£ vá» rá»—ng (cÃ³ thá»ƒ do bá»™ lá»c an toÃ n)');
         return text;
     }
 
@@ -233,7 +233,7 @@
             generationConfig: { responseModalities: ['TEXT', 'IMAGE'], imageConfig },
         });
         const part = (json.candidates?.[0]?.content?.parts || []).find((p) => p.inlineData);
-        if (!part) throw new Error('Gemini không trả về ảnh (có thể do bộ lọc an toàn)');
+        if (!part) throw new Error('Gemini khÃ´ng tráº£ vá» áº£nh (cÃ³ thá»ƒ do bá»™ lá»c an toÃ n)');
         return { url: `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}` };
     }
 
@@ -253,14 +253,14 @@
             instances: [instance],
             parameters,
         });
-        if (!op.name) throw new Error('Gemini không trả về operation cho video');
+        if (!op.name) throw new Error('Gemini khÃ´ng tráº£ vá» operation cho video');
 
-        /* Poll operation tới khi done (tối đa ~10 phút) */
+        /* Poll operation tá»›i khi done (tá»‘i Ä‘a ~10 phÃºt) */
         const started = Date.now();
         while (Date.now() - started < 10 * 60 * 1000) {
             await sleep(10000);
             const st = await gFetch(op.name, null, 'GET');
-            if (st.error) throw new Error(`Gemini video lỗi: ${st.error.message || ''}`);
+            if (st.error) throw new Error(`Gemini video lá»—i: ${st.error.message || ''}`);
             if (st.done) {
                 const sample =
                     st.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri ||
@@ -268,18 +268,18 @@
                     st.response?.generatedVideos?.[0]?.video?.uri;
                 if (!sample) {
                     const why = st.response?.generateVideoResponse?.raiMediaFilteredReasons?.[0]
-                        || 'Không tìm thấy video trong phản hồi';
+                        || 'KhÃ´ng tÃ¬m tháº¥y video trong pháº£n há»“i';
                     throw new Error(`Gemini video: ${why}`);
                 }
                 const key = loadConfig().geminiKey;
                 const resp = await fetch(sample, { headers: { 'x-goog-api-key': key } });
-                if (!resp.ok) throw new Error(`Tải video Gemini thất bại (HTTP ${resp.status})`);
+                if (!resp.ok) throw new Error(`Táº£i video Gemini tháº¥t báº¡i (HTTP ${resp.status})`);
                 const blob = await resp.blob();
                 return { url: URL.createObjectURL(blob), mime: blob.type || 'video/mp4' };
             }
-            if (opts.onTick) opts.onTick(`Veo đang render… (${Math.round((Date.now() - started) / 1000)}s)`);
+            if (opts.onTick) opts.onTick(`Veo Ä‘ang renderâ€¦ (${Math.round((Date.now() - started) / 1000)}s)`);
         }
-        const e = new Error('Gemini video quá 10 phút không xong');
+        const e = new Error('Gemini video quÃ¡ 10 phÃºt khÃ´ng xong');
         e.code = 'upstream_timeout';
         throw e;
     }
@@ -291,7 +291,7 @@
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: opts.voice || 'Kore' } } },
         };
         if (opts.instructions) {
-            /* Gemini TTS đọc cả chỉ dẫn inline trong text */
+            /* Gemini TTS Ä‘á»c cáº£ chá»‰ dáº«n inline trong text */
             text = `${opts.instructions}: ${text}`;
         }
         const json = await gFetch(`models/${model}:generateContent`, {
@@ -299,8 +299,8 @@
             generationConfig,
         });
         const part = (json.candidates?.[0]?.content?.parts || []).find((p) => p.inlineData);
-        if (!part) throw new Error('Gemini không trả về audio');
-        /* audio/L16;codec=pcm;rate=24000 → bọc WAV để phát/ghép được */
+        if (!part) throw new Error('Gemini khÃ´ng tráº£ vá» audio');
+        /* audio/L16;codec=pcm;rate=24000 â†’ bá»c WAV Ä‘á»ƒ phÃ¡t/ghÃ©p Ä‘Æ°á»£c */
         const mime = part.inlineData.mimeType || 'audio/L16;rate=24000';
         const rate = Number(/rate=(\d+)/.exec(mime)?.[1] || 24000);
         const b64 = part.inlineData.data;
@@ -316,11 +316,11 @@
     }
 
     /* ==================================================================== */
-    /* OPENAI TRỰC TIẾP                                                     */
+    /* OPENAI TRá»°C TIáº¾P                                                     */
     /* ==================================================================== */
     async function oFetch(path, opts = {}) {
         const key = loadConfig().openaiKey;
-        if (!key) { const e = new Error('Chưa có OpenAI API key'); e.code = 'pro_auth'; throw e; }
+        if (!key) { const e = new Error('ChÆ°a cÃ³ OpenAI API key'); e.code = 'pro_auth'; throw e; }
         const resp = await fetch(`${OPENAI_BASE}${path}`, {
             method: opts.method || 'POST',
             headers: {
@@ -343,7 +343,7 @@
         });
         const json = await resp.json();
         const text = json.choices?.[0]?.message?.content || '';
-        if (!text) throw new Error('OpenAI trả về rỗng');
+        if (!text) throw new Error('OpenAI tráº£ vá» rá»—ng');
         return text;
     }
 
@@ -352,15 +352,15 @@
             json: {
                 model: opts.model || loadConfig().models.openaiImage,
                 prompt,
-                size: opts.size || '1024x1536',          // 9:16 dọc
+                size: opts.size || '1024x1536',          // 9:16 dá»c
                 quality: opts.quality || 'high',
-                response_format: 'b64_json',              // luôn trả b64 — URL tạm thời hay hết hạn
+                response_format: 'b64_json',              // luÃ´n tráº£ b64 â€” URL táº¡m thá»i hay háº¿t háº¡n
                 n: 1,
             },
         });
         const json = await resp.json();
         const d = json.data?.[0];
-        if (!d) throw new Error('OpenAI không trả về ảnh');
+        if (!d) throw new Error('OpenAI khÃ´ng tráº£ vá» áº£nh');
         return { url: d.b64_json ? `data:image/png;base64,${d.b64_json}` : d.url };
     }
 
@@ -369,11 +369,11 @@
             model: opts.model || loadConfig().models.openaiVideo,   // 'sora-2' | 'sora-2-pro'
             prompt,
             seconds: Number(opts.seconds || 8),                     // Sora expects integer
-            size: opts.size || '720x1280',                          // dọc 9:16
+            size: opts.size || '720x1280',                          // dá»c 9:16
         };
         let resp = await oFetch('/videos', { json: body });
         let job = await resp.json();
-        if (!job.id) throw new Error('OpenAI không trả về video job');
+        if (!job.id) throw new Error('OpenAI khÃ´ng tráº£ vá» video job');
 
         const started = Date.now();
         while (Date.now() - started < 15 * 60 * 1000) {
@@ -381,11 +381,11 @@
             resp = await oFetch(`/videos/${job.id}`, { method: 'GET' });
             job = await resp.json();
             if (job.status === 'completed') break;
-            if (job.status === 'failed') throw new Error(`Sora lỗi: ${job.error?.message || 'không rõ'}`);
-            if (opts.onTick) opts.onTick(`Sora đang render… ${job.progress != null ? `${Math.round(job.progress * 100)}%` : ''} (${Math.round((Date.now() - started) / 1000)}s)`);
+            if (job.status === 'failed') throw new Error(`Sora lá»—i: ${job.error?.message || 'khÃ´ng rÃµ'}`);
+            if (opts.onTick) opts.onTick(`Sora Ä‘ang renderâ€¦ ${job.progress != null ? `${Math.round(job.progress * 100)}%` : ''} (${Math.round((Date.now() - started) / 1000)}s)`);
         }
         if (job.status !== 'completed') {
-            const e = new Error('Sora quá 15 phút không xong');
+            const e = new Error('Sora quÃ¡ 15 phÃºt khÃ´ng xong');
             e.code = 'upstream_timeout';
             throw e;
         }
@@ -415,11 +415,11 @@
     }
 
     /* ==================================================================== */
-    /* TOKENFORGE GATEWAY — Anthropic Messages-compatible                   */
+    /* TOKENFORGE GATEWAY â€” Anthropic Messages-compatible                   */
     /* ==================================================================== */
     async function tfFetch(path, opts = {}) {
         const c = loadConfig();
-        if (!c.tfKey) { const e = new Error('Chưa có TokenForge API key'); e.code = 'pro_auth'; throw e; }
+        if (!c.tfKey) { const e = new Error('ChÆ°a cÃ³ TokenForge API key'); e.code = 'pro_auth'; throw e; }
         const base = (c.tfBaseUrl || DEFAULT_CONFIG.tfBaseUrl).replace(/\/+$/, '');
         const resp = await fetch(`${base}${path}`, {
             method: opts.method || 'POST',
@@ -457,7 +457,7 @@
         });
         const json = await resp.json();
         const text = (json.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('');
-        if (!text) throw new Error('TokenForge trả về rỗng');
+        if (!text) throw new Error('TokenForge tráº£ vá» rá»—ng');
         return text;
     }
 
@@ -470,23 +470,23 @@
     async function tokenforgeTest() {
         try {
             const models = await listTokenforgeModels();
-            return { ok: true, info: `${models.length} model khả dụng` };
+            return { ok: true, info: `${models.length} model kháº£ dá»¥ng` };
         } catch (err) {
             return { ok: false, info: err.friendly || err.message };
         }
     }
 
     /* ==================================================================== */
-    /* Kiểm tra key                                                         */
+    /* Kiá»ƒm tra key                                                         */
     /* ==================================================================== */
     async function testKey(provider) {
         try {
             if (provider === 'gemini') {
                 const models = await listGeminiModels();
-                return { ok: true, info: `${models.length} model khả dụng` };
+                return { ok: true, info: `${models.length} model kháº£ dá»¥ng` };
             }
             const models = await listOpenaiModels();
-            return { ok: true, info: `${models.length} model khả dụng` };
+            return { ok: true, info: `${models.length} model kháº£ dá»¥ng` };
         } catch (err) {
             return { ok: false, info: err.message };
         }
