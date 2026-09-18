@@ -32,7 +32,7 @@
         openaiKey: '',
         /* TokenForge gateway â€” Anthropic Messages-compatible */
         tfKey: '',
-        tfBaseUrl: 'https://ws-zdt79h6linh4t7no.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1',
+        tfBaseUrl: '/api/tf',
         /* engine cho tá»«ng loáº¡i tÃ¡c vá»¥: 'auto' (Puter) | 'gemini' | 'openai' | 'tokenforge' (chat) | 'voicestudio' (voice) */
         engines: { chat: 'auto', image: 'auto', video: 'auto', voice: 'auto' },
         /* Khi Pro lá»—i (háº¿t quota free tier, key háº¿t háº¡n, model limit 0â€¦)
@@ -415,56 +415,57 @@
     }
 
     /* ==================================================================== */
-    /* TOKENFORGE GATEWAY â€” Anthropic Messages-compatible                   */
+    /* TOKENFORGE GATEWAY — OpenAI-compatible (Alibaba Cloud Model Studio)  */
     /* ==================================================================== */
     async function tfFetch(path, opts = {}) {
         const c = loadConfig();
-        if (!c.tfKey) { const e = new Error('ChÆ°a cÃ³ TokenForge API key'); e.code = 'pro_auth'; throw e; }
-        const base = (c.tfBaseUrl || DEFAULT_CONFIG.tfBaseUrl).replace(/\/+$/, '');
-        const resp = await fetch(`${base}${path}`, {
+        const base = (c.tfBaseUrl || DEFAULT_CONFIG.tfBaseUrl || '').trim().replace(/\/+$/, '');
+        const viaProxy = base.startsWith('/');          // '/api/tf' → key nằm ở server
+
+        if (!viaProxy && !c.tfKey) {
+            const e = new Error('Chưa có TokenForge API key');
+            e.code = 'pro_auth';
+            throw e;
+        }
+
+        /* Base URL đã kết thúc bằng /v1 thì không nối thêm /v1 nữa (chống 404 /v1/v1/...) */
+        const p = /\/v1$/.test(base) ? path.replace(/^\/v1(?=\/|$)/, '') : path;
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (!viaProxy) headers['Authorization'] = `Bearer ${c.tfKey}`;   // KHÔNG dùng x-api-key
+
+        const resp = await fetch(`${base}${p}`, {
             method: opts.method || 'POST',
-            headers: {
-                'x-api-key': c.tfKey,
-                'anthropic-version': '2023-06-01',
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: opts.json ? JSON.stringify(opts.json) : undefined,
         });
         if (!resp.ok) await readError(resp, 'TokenForge');
         return resp;
     }
 
-    function toAnthropicMessages(messages) {
-        const system = messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n');
-        const converted = messages.filter((message) => message.role !== 'system').map((message) => ({
-            role: message.role === 'assistant' ? 'assistant' : 'user',
-            content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content),
-        }));
-        return { system: system || undefined, messages: converted };
-    }
-
     async function tokenforgeChat(messages, opts = {}) {
         const c = loadConfig();
-        const converted = toAnthropicMessages(messages);
-        const resp = await tfFetch('/v1/messages', {
+        const resp = await tfFetch('/v1/chat/completions', {
             json: {
-                model: opts.model || c.models.tfChat || 'claude-sonnet-5[1m]',
-                system: converted.system,
-                messages: converted.messages,
+                model: opts.model || c.models.tfChat || 'qwen3.8-max',
+                messages: messages.map((m) => ({
+                    role: m.role === 'assistant' ? 'assistant' : m.role === 'system' ? 'system' : 'user',
+                    content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
+                })),
                 max_tokens: opts.max_tokens || 4096,
                 temperature: opts.temperature,
             },
         });
         const json = await resp.json();
-        const text = (json.content || []).filter((block) => block.type === 'text').map((block) => block.text).join('');
-        if (!text) throw new Error('TokenForge tráº£ vá» rá»—ng');
+        const text = json?.choices?.[0]?.message?.content || '';
+        if (!text) throw new Error('TokenForge trả về rỗng');
         return text;
     }
 
     async function listTokenforgeModels() {
         const resp = await tfFetch('/v1/models', { method: 'GET' });
         const json = await resp.json();
-        return (json.data || json.models || []).map((model) => model.id || model.name).filter(Boolean);
+        return (json.data || json.models || []).map((m) => m.id || m.name).filter(Boolean).sort();
     }
 
     async function tokenforgeTest() {
