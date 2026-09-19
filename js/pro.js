@@ -65,7 +65,7 @@
         try {
             config = { ...structuredClone(DEFAULT_CONFIG), ...(JSON.parse(localStorage.getItem(STORE_KEY) || '{}')) };
             config.engines = { ...DEFAULT_CONFIG.engines, ...(config.engines || {}) };
-            config.models = { ...DEFAULT_CONFIG.models, ...(config.models || {}) };
+            config.models = migrateModels({ ...DEFAULT_CONFIG.models, ...(config.models || {}) });
             if (!Array.isArray(config.geminiKeys)) config.geminiKeys = [];
             if (!Array.isArray(config.openaiKeys)) config.openaiKeys = [];
             if (!Array.isArray(config.tfKeys)) config.tfKeys = [];
@@ -105,6 +105,29 @@
     /* Key pool helpers                                                     */
     /* ------------------------------------------------------------------ */
     /** Chuyen chuoi nhieu dong / dau phay thanh mang key sach. */
+    /* ------------------------------------------------------------------ */
+    /* Auto-migrate deprecated model names saved in localStorage          */
+    /* ------------------------------------------------------------------ */
+    const MODEL_MIGRATIONS = {
+        'gemini-2.5-flash':             'gemini-2.0-flash-lite',
+        'gemini-2.5-flash-exp':         'gemini-2.0-flash-lite',
+        'gemini-2.5-flash-001':         'gemini-2.0-flash-lite',
+        'gemini-2.5-flash-image':       'gemini-2.0-flash-exp',
+        'gemini-2.5-flash-preview-tts': 'gemini-2.0-flash-preview-tts',
+        'gemini-1.5-flash':             'gemini-2.0-flash-lite',
+        'gemini-1.5-pro':               'gemini-2.0-flash',
+        'gemini-pro':                   'gemini-2.0-flash-lite',
+        'gemini-2.5-flash-lite':        'gemini-2.0-flash-lite',
+    };
+    function migrateModels(models) {
+        if (!models || typeof models !== 'object') return models;
+        const out = { ...models };
+        Object.keys(out).forEach((k) => {
+            if (MODEL_MIGRATIONS[out[k]]) out[k] = MODEL_MIGRATIONS[out[k]];
+        });
+        return out;
+    }
+
     function parseKeyList(raw) {
         if (Array.isArray(raw)) return raw.map((k) => k.trim()).filter(Boolean);
         return String(raw || '').split(/[\n,]+/).map((k) => k.trim()).filter(Boolean);
@@ -308,15 +331,33 @@
 
     async function geminiChat(messages, opts = {}) {
         const { contents, systemInstruction } = geminiPartsFromMessages(messages);
-        const json = await gFetch(`models/${opts.model || loadConfig().models.geminiChat}:generateContent`, {
-            contents,
-            systemInstruction,
-            generationConfig: { temperature: opts.temperature },
-        });
-        const parts = json.candidates?.[0]?.content?.parts || [];
-        const text = parts.map((p) => p.text || '').join('');
-        if (!text) throw new Error('Gemini tráº£ vá» rá»—ng (cÃ³ thá»ƒ do bá»™ lá»c an toÃ n)');
-        return text;
+        const FALLBACK_MODELS = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+        const modelToUse = opts.model || loadConfig().models.geminiChat;
+        const tryModel = async (model) => {
+            const json = await gFetch(`models/${model}:generateContent`, {
+                contents,
+                systemInstruction,
+                generationConfig: { temperature: opts.temperature },
+            });
+            const parts = json.candidates?.[0]?.content?.parts || [];
+            const text = parts.map((p) => p.text || '').join('');
+            if (!text) throw new Error('Gemini tra ve rong (co the do bo loc an toan)');
+            return text;
+        };
+        // Try chosen model first, then fallbacks if deprecated/not available
+        const modelsToTry = [modelToUse, ...FALLBACK_MODELS.filter((m) => m !== modelToUse)];
+        let lastErr;
+        for (const m of modelsToTry) {
+            try {
+                return await tryModel(m);
+            } catch (err) {
+                lastErr = err;
+                const deprecated = /no longer available|not found|deprecated|404/i.test(err.message || '');
+                if (!deprecated) throw err; // auth/quota error - don't retry with same key
+                // model deprecated - try next in list
+            }
+        }
+        throw lastErr;
     }
 
     async function geminiTxt2img(prompt, opts = {}) {

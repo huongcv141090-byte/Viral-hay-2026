@@ -87,6 +87,22 @@
             <div>
                 Muốn tạo <b>nội dung THẬT</b>: ① tắt công tắc 🧪 ở thanh trên → ② đăng nhập Puter (chip góc phải, miễn phí) <i>hoặc</i> nhập key 💎 Pro ở tab Cài đặt → ③ bấm sinh lại ảnh/giọng/clip.
             </div>
+        <!-- Banner huong dan lay key khi khong co AI engine nao -->
+        <div id="no-key-banner" class="no-key-banner hidden">
+            <div class="no-key-inner">
+                <div class="no-key-icon">🔑</div>
+                <div>
+                    <b>Chưa có API key — app cần ít nhất 1 key để chạy</b>
+                    <p>Puter AI (engine dự phòng) cần credits. Hãy thêm key miễn phí của Google Gemini để dùng ngay không mất phí.</p>
+                    <div class="no-key-steps">
+                        <span class="no-key-step">① Vào <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener"><b>aistudio.google.com/apikey</b></a> → tạo API key miễn phí</span>
+                        <span class="no-key-step">② Quay lại đây → tab <b>⚙️ Cài đặt</b> → mục <b>💎 Tài khoản Pro</b> → dán key vào ô <b>Google Gemini API key</b></span>
+                        <span class="no-key-step">③ Chọn <b>Engine chat: Gemini trực tiếp</b> → Model: <code>gemini-2.0-flash-lite</code> → bấm <b>Kiểm tra key Gemini</b></span>
+                    </div>
+                </div>
+                <button onclick="document.querySelector('[data-view=settings]').click();this.closest('.no-key-banner').classList.add('hidden')" class="btn primary no-key-btn">⚙️ Cài đặt key ngay</button>
+            </div>
+        </div>
         </div>
 
         <!-- ============ STEP 01: BRIEF + Ý TƯỞNG ============ -->

@@ -73,6 +73,15 @@
         if (b) b.classList.toggle('hidden', !APP.settings.testMode);
     }
 
+    /* Banner huong dan lay key khi khong co key nao va Puter het tien */
+    function checkAndShowNoKeyBanner() {
+        if (typeof VFPro === 'undefined') return;
+        const status = VFPro.proStatus();
+        const hasAnyKey = status.gemini || status.openai || status.tokenforge;
+        const banner = $('no-key-banner');
+        if (banner) banner.classList.toggle('hidden', hasAnyKey);
+    }
+
     /* Hậu tố trạng thái khi kết quả là media mẫu của chế độ thử nghiệm */
     function testNote() {
         return APP.settings.testMode ? ' — 🧪 media MẪU, tắt Chế độ thử nghiệm để tạo THẬT' : '';
@@ -1613,6 +1622,7 @@
         initProUI();
         initVS();
         renderTestBanner();
+        checkAndShowNoKeyBanner();
 
         fillFormFromProject();
         bind();
