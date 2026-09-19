@@ -1,0 +1,1 @@
+{"name":"viralforge-2026","version":"1.1.0","private":true,"type":"module","packageManager":"pnpm@9.15.4","engines":{"node":">=18"},"scripts":{"build":"echo No build step"},"dependencies":{"@vercel/blob":"^1.1.0"}}
