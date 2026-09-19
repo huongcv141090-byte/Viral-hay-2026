@@ -1,4 +1,4 @@
-/* =============================================================================
+﻿/* =============================================================================
  * ViralForge 2026 — Puter AI Edition
  * js/models.js — Danh mục model AI kèm sẵn (chỉ mang tính tham khảo; cần kiểm tra provider để biết model khả dụng)
  *
@@ -20,6 +20,9 @@
         { id: 'claude-opus-4-8',    label: 'Claude Opus 4.8',         vendor: 'Anthropic', badge: 'CATALOG', note: 'Sáng viết kịch bản hay nhất' },
         { id: 'claude-sonnet-5',    label: 'Claude Sonnet 5',         vendor: 'Anthropic', badge: 'CATALOG',      note: 'Nhanh, chất lượng cao' },
         { id: 'claude-sonnet-4-6',  label: 'Claude Sonnet 4.6',       vendor: 'Anthropic', badge: '',         note: 'Ổn định, phổ biến' },
+        { id: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite', vendor: 'Google', badge: 'MIEN PHI', note: 'Free tier on dinh nhat - khuyen dung khi khong co key' },
+        { id: 'gemini-2.0-flash',    label: 'Gemini 2.0 Flash',      vendor: 'Google',    badge: 'MIEN PHI', note: 'Nhanh, mien phi, on dinh' },
+        { id: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite', vendor: 'Google', badge: '', note: 'Phien ban lite on dinh cua 2.5' },
         { id: 'gemini-3.1-flash',   label: 'Gemini 3.1 Flash',        vendor: 'Google',    badge: 'CATALOG', note: 'Multimodal, rất nhanh' },
         { id: 'gemini-3.1-flash-lite', label: 'Gemini 3.1 Flash Lite', vendor: 'Google',   badge: 'RẺ',      note: 'Bản nhẹ của Gemini 3.1' },
     ];
@@ -316,7 +319,7 @@
             chat: 'gpt-5.5',
             image: 'gemini-3.1-flash-image-preview',
             video: 'seedance-2-0-mini',
-            tts: { provider: 'gemini', model: 'gemini-3.1-flash-tts-preview' },
+            tts: { provider: 'gemini', model: 'gemini-2.0-flash-preview-tts' },
         },
         vietnamese: {
             label: 'Combo Tiếng Việt',

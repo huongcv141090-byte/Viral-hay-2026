@@ -1,4 +1,4 @@
-/* =============================================================================
+﻿/* =============================================================================
  * ViralForge 2026 â€” Puter AI Edition
  * js/pro.js â€” TÃ€I KHOáº¢N PRO (BYOK): gá»i TRá»°C TIáº¾P API Google Gemini & OpenAI
  *             báº±ng API key cá»§a ngÆ°á»i dÃ¹ng, song song vá»›i Puter.
@@ -44,10 +44,10 @@
         autoFallback: true,
         /* model trá»±c tiáº¿p Ä‘ang chá»n â€” máº·c Ä‘á»‹nh Æ°u tiÃªn model CÃ“ free tier */
         models: {
-            geminiChat: 'gemini-2.5-flash',
+            geminiChat: 'gemini-2.0-flash-lite',
             openaiChat: 'gpt-5.5',
             tfChat: 'claude-sonnet-5[1m]',
-            geminiImage: 'gemini-2.5-flash-image',
+            geminiImage: 'gemini-2.0-flash-exp',
             openaiImage: 'gpt-image-1',
             geminiVideo: 'veo-3.1-fast-generate-preview',
             openaiVideo: 'sora-2',
@@ -599,9 +599,9 @@
         tokenforgeChat, tokenforgeTest, listTokenforgeModels,
         testKey,
         DIRECT_MODELS: {
-            geminiChat: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-3-pro-preview', 'gemini-3-flash-preview'],
+            geminiChat: ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro', 'gemini-3-flash-preview', 'gemini-3-pro-preview'],
             openaiChat: ['gpt-5.5', 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-4.1', 'gpt-4o', 'gpt-4o-mini'],
-            geminiImage: ['gemini-3-pro-image-preview', 'gemini-3.1-flash-image-preview', 'gemini-2.5-flash-image'],
+            geminiImage: ['gemini-3-pro-image-preview', 'gemini-3.1-flash-image-preview', 'gemini-2.0-flash-exp', 'gemini-2.0-flash-lite'],
             openaiImage: ['gpt-image-1', 'gpt-image-1-mini', 'gpt-image-2'],
             geminiVideo: ['veo-3.1-generate-preview', 'veo-3.1-fast-generate-preview', 'veo-3.1-lite-generate-preview'],
             openaiVideo: ['sora-2-pro', 'sora-2'],
